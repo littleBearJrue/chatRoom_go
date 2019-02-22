@@ -65,6 +65,7 @@ func doClientHandle(conn net.Conn) {
 			break
 		}
 
-		fmt.Println("\n" + string(data[0:msg_read]))  //把字节流转换成字符串
+		fmt.Println("\n" + "from ", string(data[0:msg_read]))  //把字节流转换成字符串
+		fmt.Print("please type: ")
 	}
 }

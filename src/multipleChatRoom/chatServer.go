@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+// 定义聊天室基本数据
+type chatRoom struct {
+	id int32
+	name string
+
+}
+
 // 定义client存储用户的基本数据
 type client struct {
 	chatChan chan string
@@ -17,7 +24,6 @@ type client struct {
 
 // 定义一个map表存储在线的所有玩家信息 key：nickName, client:client实体
 var onlineClients = make(map[string] client)
-
 
 func main() {
 
@@ -110,6 +116,12 @@ func doServerHandle(conn net.Conn) {
 		switch msg_str[0] {
 		// 玩家登陆上线
 		case "online":
+
+			clt := client{make(chan string), msg_str[1], clientAddr, true}
+			onlineClients[msg_str[1]] = clt
+
+			go sendMsgToClient(clt, conn)
+
 			fmt.Printf("玩家[%s]上线！", msg_str[1])
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {
@@ -117,10 +129,6 @@ func doServerHandle(conn net.Conn) {
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
-			clt := client{make(chan string), msg_str[1], clientAddr, true}
-			onlineClients[msg_str[1]] = clt
-
-			go sendMsgToClient(clt, conn)
 		// 玩家的聊天内容，转发给客户端
 		case "say":
 			fmt.Println("onlineClients_say ==> ", onlineClients)
