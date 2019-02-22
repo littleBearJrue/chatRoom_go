@@ -7,11 +7,25 @@ import (
 	"strings"
 )
 
+// 定义协议码
+// 1. 101 :玩家注册登陆
+// 2. 102：玩家上线
+// 3. 103：玩家聊天内容
+// 4. 104：玩家下线
+//
+
+const  (
+	S_LOGIN = "101"
+	S_ONLINE = "102"
+	S_CHAT = "103"
+	S_OFFLINE = "104"
+)
+
 // 定义聊天室基本数据
 type chatRoom struct {
 	id int32
 	name string
-
+	clients map[int] client
 }
 
 // 定义client存储用户的基本数据
@@ -24,6 +38,9 @@ type client struct {
 
 // 定义一个map表存储在线的所有玩家信息 key：nickName, client:client实体
 var onlineClients = make(map[string] client)
+
+// 定义一个map表储存所有聊天室信息
+var chatRooms = make(map[int] chatRoom)
 
 func main() {
 
@@ -108,15 +125,13 @@ func doServerHandle(conn net.Conn) {
 		}
 		// 解析客户端发送过来的数据
 		msg_str := strings.Split(string(buf[0:len]), "|")  //将从客户端收到的字节流分段保存到msg_str这个数组中
-		// msg_str[0] 存放的数数据类型，包括：“online”,“offline”，“say”
-
+		// msg_str[0] 存放的数数据类型，包括：“online”,“offline”，“chat”
 
 		fmt.Println("from client msg: ", msg_str)
 
 		switch msg_str[0] {
 		// 玩家登陆上线
-		case "online":
-
+		case S_ONLINE:
 			clt := client{make(chan string), msg_str[1], clientAddr, true}
 			onlineClients[msg_str[1]] = clt
 
@@ -130,8 +145,7 @@ func doServerHandle(conn net.Conn) {
 				}
 			}
 		// 玩家的聊天内容，转发给客户端
-		case "say":
-			fmt.Println("onlineClients_say ==> ", onlineClients)
+		case S_CHAT:
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "[" + msg_str[1] + "]： " + msg_str[2]
@@ -140,7 +154,7 @@ func doServerHandle(conn net.Conn) {
 				}
 			}
 		// 玩家的下线通知
-		case "offline":
+		case S_OFFLINE:
 			fmt.Printf("玩家[%s]上线！", msg_str[1])
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {

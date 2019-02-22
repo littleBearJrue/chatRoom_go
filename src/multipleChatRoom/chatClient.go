@@ -7,6 +7,18 @@ import (
 	"os"
 	"strings"
 )
+// 定义协议码
+// 1. 101 :玩家注册登陆
+// 2. 102：玩家上线
+// 3. 103：玩家聊天内容
+// 4. 104：玩家下线
+//
+const (
+	LOGIN = "101"
+	ONLINE = "102"
+	CHAT = "103"
+	OFFLINE = "104"
+)
 
 func main() {
 	//打开连接:
@@ -26,7 +38,7 @@ func main() {
 	trimmedNick := strings.Trim(clientName, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
 	fmt.Println("你好，" + trimmedNick + "! 欢迎你加入聊天室")
 	// 将玩家登陆信息发送给服务器端
-	sendMsgToServer(conn, "online|" + trimmedNick)
+	sendMsgToServer(conn, ONLINE + "|" + trimmedNick)
 
 	// 创建一个协程不停读取server数据
 	go doClientHandle(conn)
@@ -39,9 +51,9 @@ func main() {
 		fmt.Print("please type: ")
 		input, _ := inputReader.ReadString('\n')
 		trimmedInput := strings.Trim(input, "\r\n")
-		sendMsgToServer(conn, "say|" + trimmedNick + "|" + trimmedInput)  //三段字节流 say | 昵称 | 发送的消息
+		sendMsgToServer(conn, CHAT + "|" + trimmedNick + "|" + trimmedInput)  //三段字节流 say | 昵称 | 发送的消息
 		if trimmedInput == "Q" {
-			sendMsgToServer(conn, "offline|" + trimmedNick)  //将quit字节流发送给服务器端
+			sendMsgToServer(conn, OFFLINE + "|" + trimmedNick)  //将quit字节流发送给服务器端
 			return
 		}
 	}
