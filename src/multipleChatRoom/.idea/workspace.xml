@@ -13,20 +13,20 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/client/chatClient.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="251">
-              <caret line="77" column="4" selection-start-line="77" selection-start-column="4" selection-end-line="77" selection-end-column="4" />
+            <state relative-caret-position="346">
+              <caret line="165" lean-forward="true" selection-start-line="165" selection-end-line="165" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server/chatServer.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="525">
-              <caret line="209" column="13" lean-forward="true" selection-start-line="209" selection-start-column="13" selection-end-line="209" selection-end-column="13" />
+            <state relative-caret-position="-1676">
+              <caret line="168" column="12" lean-forward="true" selection-start-line="168" selection-start-column="12" selection-end-line="168" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -78,13 +78,10 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>chatChan</find>
-      <find>write</find>
       <find>onlineClients</find>
       <find>Write</find>
       <find>sendMsgToServer</find>
       <find>LOGIN</find>
-      <find>ONLINE</find>
       <find>CHAT</find>
       <find>OFFLINE</find>
       <find>chatRoom</find>
@@ -95,7 +92,6 @@
       <find>S_ONLINE</find>
       <find>S_CHAT</find>
       <find>S_OFFLINE</find>
-      <find>userName</find>
       <find>sendMsgToClient</find>
       <find>msg_str</find>
       <find>len</find>
@@ -105,8 +101,13 @@
       <find>recvChan</find>
       <find>clientLog</find>
       <find>doClientRecvData</find>
-      <find>userData</find>
       <find>displayMsgContent</find>
+      <find>userData</find>
+      <find>userLogin</find>
+      <find>ONLINE</find>
+      <find>userChatRoomChoice</find>
+      <find>loginSuccess</find>
+      <find>userName</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="C:\Go" />
@@ -121,8 +122,8 @@
         <option value="$PROJECT_DIR$/chatServer.go" />
         <option value="$PROJECT_DIR$/jsonTest.go" />
         <option value="$PROJECT_DIR$/test.go" />
-        <option value="$PROJECT_DIR$/server/chatServer.go" />
         <option value="$PROJECT_DIR$/client/chatClient.go" />
+        <option value="$PROJECT_DIR$/server/chatServer.go" />
       </list>
     </option>
   </component>
@@ -305,17 +306,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server/chatServer.go">
+    <entry file="file://$PROJECT_DIR$/client/chatClient.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="209" column="13" lean-forward="true" selection-start-line="209" selection-start-column="13" selection-end-line="209" selection-end-column="13" />
+        <state relative-caret-position="346">
+          <caret line="165" lean-forward="true" selection-start-line="165" selection-end-line="165" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/client/chatClient.go">
+    <entry file="file://$PROJECT_DIR$/server/chatServer.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="251">
-          <caret line="77" column="4" selection-start-line="77" selection-start-column="4" selection-end-line="77" selection-end-column="4" />
+        <state relative-caret-position="-1676">
+          <caret line="168" column="12" lean-forward="true" selection-start-line="168" selection-start-column="12" selection-end-line="168" selection-end-column="12" />
         </state>
       </provider>
     </entry>

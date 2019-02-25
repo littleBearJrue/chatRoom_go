@@ -20,21 +20,24 @@ const (
 	HEART = "100"
 	LOGIN = "101"
 	REGISTER = "102"
-	ONLINE = "103"
-	CHAT = "104"
-	OFFLINE = "105"
+	ROOM_CHOICE = "103"
+	ONLINE = "104"
+	CHAT = "105"
+	OFFLINE = "106"
 
 	// 对聊天方式标示
 	P_CHAT = "@"     // 私聊标示
 	HINT_CHAT = "#"  // 常用语
 
 	PRIVATE_CHAT = "201"
-
 )
+
+
 
 const (
 	USER_FILE_NAME = "userData.txt"
 	CHAT_ROOM_FILE_NAME = "roomData.txt"
+	CAHT_CONTENT_FILE_NAME = "chatContentData.txt"
 )
 // 注意：所有需要导出的结构都需要大写
 // 定义聊天室基本数据
@@ -162,6 +165,7 @@ func doServerHandle(conn net.Conn) {
 			if isSuccess == true {
 
 			}
+		case ROOM_CHOICE:   //选择聊天室
 
 		case ONLINE:  // 玩家登陆上线
 			clt := client{make(chan string), user{msg_str[1], clientAddr, clientAddr, true}}

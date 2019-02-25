@@ -18,9 +18,10 @@ const (
 	HEART = "100"
 	LOGIN = "101"
 	REGISTER = "102"
-	ONLINE = "103"
-	CHAT = "104"
-	OFFLINE = "105"
+	ROOM_CHOICE = "103"
+	ONLINE = "104"
+	CHAT = "105"
+	OFFLINE = "106"
 
 	// 对聊天方式标示
 	P_CHAT = "@"     // 私聊标示
@@ -74,6 +75,9 @@ func Main() {
 		fmt.Println("输入错误！")
 		return
 	}
+
+	go userChatRoomChoice(inputReader)
+
 	// 开启一个线程显示获取到server数据
 	go displayMsgContent()
 
@@ -136,6 +140,7 @@ func Main() {
 	}
 }
 
+// 玩家登陆
 func userLogin(inputReader *bufio.Reader ) {
 	LOOP: for {
 		fmt.Println("请输入用户名：")
@@ -152,15 +157,21 @@ func userLogin(inputReader *bufio.Reader ) {
 		result := <- recvChan
 		trimResult := strings.Trim(result, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
 		if trimResult == "loginSuccess" {
-
 			userName = trimName
 			userPassword = trimPassword
 
-			fmt.Println("你好，" + userName + "! 欢迎你加入聊天室")
-			// 将玩家登陆信息发送给服务器端
-			sendChan <- ONLINE + "|" + userName
+			// 收到目前已有的聊天室供玩家选择
+			fmt.Println("恭喜你登陆成功，请先选择你要加入的聊天室：")
+			sendChan <- ROOM_CHOICE + userName
 
-			fmt.Println("你可以开始聊天了，按Q退出聊天室")
+
+
+			//
+			//fmt.Println("你好，" + userName + "! 欢迎你加入聊天室")
+			//// 将玩家登陆信息发送给服务器端
+			//sendChan <- ONLINE + "|" + userName
+			//
+			//fmt.Println("你可以开始聊天了，按Q退出聊天室")
 
 			break
 		} else {
@@ -173,7 +184,36 @@ func userLogin(inputReader *bufio.Reader ) {
 
 }
 
+// 玩家注册
 func userRegister(inputReader *bufio.Reader) {
+	LOOP: for {
+		fmt.Println("请输入用户名：")
+		name, _ := inputReader.ReadString('\n')
+		trimName := strings.Trim(name, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+		fmt.Println("请输入密码：")
+		password, _ := inputReader.ReadString('\n')
+		trimPassword := strings.Trim(password, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+
+		// 将用户注册的数据放入发送通道中上传到服务器
+		sendChan <- REGISTER + "|" + trimName + "|" + trimPassword
+
+		// 从接收通道中读取服务器数据，得到注册结果
+		result := <- recvChan
+		trimResult := strings.Trim(result, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+		if trimResult == "registerSuccess" {
+			fmt.Println("恭喜你注册成功，请完成登录")
+			// 注册成功，转去登陆
+			userLogin(inputReader)
+			break
+		}else{
+			fmt.Println(trimResult)
+			goto LOOP
+		}
+	}
+}
+
+// 玩家选择进入的聊天室
+func userChatRoomChoice(inputReader *bufio.Reader) {
 	LOOP: for {
 		fmt.Println("请输入用户名：")
 		name, _ := inputReader.ReadString('\n')
