@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -32,19 +33,18 @@ const (
 	PRIVATE_CHAT = "201"
 )
 
-
-
 const (
 	USER_FILE_NAME = "userData.txt"
 	CHAT_ROOM_FILE_NAME = "roomData.txt"
 	CAHT_CONTENT_FILE_NAME = "chatContentData.txt"
 )
+
 // 注意：所有需要导出的结构都需要大写
 // 定义聊天室基本数据
 type chatRoom struct {
-	RoomId int32
-	roomName string
-	Clients map[int] client
+	RoomId int
+	RoomName string
+	//Clients map[int] client
 }
 
 type user struct {
@@ -74,6 +74,8 @@ func Main() {
 	fmt.Println("Starting the chat server ...")
 	// 优先读取数据库数据
 	userData = readUserDataFromFile(USER_FILE_NAME)
+	// 更新聊天室数据
+	chatRooms = addChatRooms()
 	// 启动服务
 	startSocket()
 }
@@ -101,8 +103,6 @@ func startSocket() {
 
 	}
 }
-
-
 
 func doServerHandle(conn net.Conn) {
 	// 结束后关闭连接
@@ -166,6 +166,26 @@ func doServerHandle(conn net.Conn) {
 
 			}
 		case ROOM_CHOICE:   //选择聊天室
+			// 将聊天室列表传给客户端提供选择
+			if len(msg_str) == 1 {
+				var toClientRoomStr string
+				for i, chatRoom := range chatRooms{
+					roomName := string(i) + "." + chatRoom.RoomName + "\n"
+					toClientRoomStr = toClientRoomStr + roomName
+				}
+				fmt.Println("ROOM_CHOICE", toClientRoomStr)
+				// 传回给客户端
+				conn.Write([]byte(toClientRoomStr + "\n"))
+			} else {
+				// 根据玩家选择的聊天室进入对于聊天室展开对话
+				index,_:= strconv.Atoi(msg_str[1])
+				curRoomName := chatRooms[index].RoomName
+				// 获取该聊天室的总人数
+				toClientMsg := "欢迎你进入" + curRoomName + "聊天室！此聊天室总人数为100人"
+
+				// 传回给客户端
+				conn.Write([]byte(toClientMsg + "\n"))
+			}
 
 		case ONLINE:  // 玩家登陆上线
 			clt := client{make(chan string), user{msg_str[1], clientAddr, clientAddr, true}}
@@ -181,6 +201,7 @@ func doServerHandle(conn net.Conn) {
 				}
 			}
 		case CHAT:  // 玩家的聊天内容，转发给客户端
+			fmt.Println("len of onlineClients: ", len(onlineClients))
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "[" + msg_str[1] + "]： " + msg_str[2]
@@ -188,7 +209,7 @@ func doServerHandle(conn net.Conn) {
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
-		case P_CHAT:   //私聊获取所有玩家列表
+		case P_CHAT:   //私聊具体内容
 			//var toClientMsg string = P_CHAT + "|"
 			//if len(msg_str) == 1 {   // client端只输入“@”调起所有用户列表
 			//	var allUserName string
@@ -212,10 +233,10 @@ func doServerHandle(conn net.Conn) {
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
-		case PRIVATE_CHAT:  //私聊具体内容
+		case PRIVATE_CHAT:
 
 		case OFFLINE:  // 玩家的下线通知
-			fmt.Printf("玩家[%s]上线！", msg_str[1])
+			fmt.Printf("玩家[%s]下线！'\n'", msg_str[1])
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "玩家" + "[" + msg_str[1] + "]" + "已退出聊天室"
@@ -224,8 +245,8 @@ func doServerHandle(conn net.Conn) {
 			}
 			// 将退出玩家从在线玩家列表中删除
 			delete(onlineClients, msg_str[1])
-			// 心跳包
-		case HEART:
+
+		case HEART:  // 心跳包
 			fmt.Println("heartBeat Msg ----->", msg_str[1])
 			heartMsgChan <- msg_str[1]
 		}
@@ -290,4 +311,13 @@ func insertDataToFile(fileName string, userName string, userPassword string, add
 	fmt.Println("json", data)
 	fmt.Println("stringFromJson", string(data))
 	file.WriteString(string(data))
+}
+
+func addChatRooms() map[int] chatRoom{
+	chatRoomName := []string{"天蝎座", "天秤座", "金羊座", "摩羯座", "处女座"}
+	rooms := make(map[int] chatRoom)
+	for i := 1; i < len(chatRoomName); i++ {
+		rooms[i] = chatRoom{i, chatRoomName[i]}
+	}
+	return rooms
 }
