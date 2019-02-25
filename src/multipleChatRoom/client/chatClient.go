@@ -14,12 +14,20 @@ import (
 // 4. 104：玩家下线
 //
 const (
+	// 核心
 	HEART = "100"
 	LOGIN = "101"
 	REGISTER = "102"
 	ONLINE = "103"
 	CHAT = "104"
 	OFFLINE = "105"
+
+	// 对聊天方式标示
+	P_CHAT = "@"     // 私聊标示
+	HINT_CHAT = "#"  // 常用语
+	Exit = "Q"
+
+	PRIVATE_CHAT = "201"
 )
 
 // 接收数据的通道
@@ -55,12 +63,12 @@ func Main() {
 	fmt.Println("连接成功！请进行以下操作：1、登录  2、注册")
 	inputReader := bufio.NewReader(os.Stdin)
 	userChoice, _ := inputReader.ReadString('\n')
-	trimInput := strings.Trim(userChoice, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+	choiceInput := strings.Trim(userChoice, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
 	// 玩家登陆操作
-	if trimInput == "1" {
+	if choiceInput == "1" {
 		userLogin(inputReader)
 	// 玩家注册操作
-	}else if trimInput == "2" {
+	}else if choiceInput == "2" {
 		userRegister(inputReader)
 	}else {
 		fmt.Println("输入错误！")
@@ -74,13 +82,58 @@ func Main() {
 		fmt.Print("please type: ")
 		input, _ := inputReader.ReadString('\n')
 		trimmedInput := strings.Trim(input, "\r\n")
-		sendChan <- CHAT + "|" + userName + "|" + trimmedInput  //三段字节流 say | 昵称 | 发送的消息
-		if trimmedInput == "Q" {
+		switch trimmedInput {
+		// 进入私聊
+		case P_CHAT:
+			//// 发送给server
+			//sendChan <- P_CHAT
+			//
+			//// 收到server的回答
+			//fmt.Println("len of chan:", len(recvChan))
+			//result := <- recvChan
+			//trimResult := strings.Trim(result, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+			//fmt.Println("trimResult", trimResult)
+			//fmt.Println("请输入你要私聊的用户: ")
+			//name, _ := inputReader.ReadString('\n')
+			//trimmedName := strings.Trim(name, "\r\n")
+			//
+			//sendChan <- P_CHAT + "|" + trimmedName
+			//
+			//// 从接收通道中读取服务器数据，得到登陆结果
+			//response := <- recvChan
+			//trimmedResponse := strings.Trim(response, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+			//// 输入正确且在线存在这个人
+			//if trimmedResponse == "success" {
+			//	fmt.Print("please type with " + trimmedName + ": ")
+			//	p_input, _ := inputReader.ReadString('\n')
+			//	p_trimmedInput := strings.Trim(p_input, "\r\n")
+			//	sendChan <- PRIVATE_CHAT + "|" + userName + "|" + p_trimmedInput  //三段字节流 say | 昵称 | 发送的消息
+			//
+			//} else {
+			//	// 输入有误，重新回到聊天界面
+			//	fmt.Println("请检查是否输入的私聊玩家有误！")
+			//	break
+			//}
+			fmt.Println("请输入你要私聊的用户: ")
+			name, _ := inputReader.ReadString('\n')
+			trimmedName := strings.Trim(name, "\r\n")
+			fmt.Println("请输入你要私聊的内容: ")
+			content, _ := inputReader.ReadString('\n')
+			trimmedContent:= strings.Trim(content, "\r\n")
+			sendChan <- P_CHAT + "|" + trimmedName + "|" + userName + "|" + trimmedContent
+		case HINT_CHAT:
+			// 常用语提示
+
+
+		case Exit:
+			// 退出聊天
 			sendChan <- OFFLINE + "|" + userName  //将quit字节流发送给服务器端
 			return
+		default:
+			// 默认群发
+			sendChan <- CHAT + "|" + userName + "|" + trimmedInput  //三段字节流 say | 昵称 | 发送的消息
 		}
 	}
-
 }
 
 func userLogin(inputReader *bufio.Reader ) {
@@ -107,7 +160,6 @@ func userLogin(inputReader *bufio.Reader ) {
 			// 将玩家登陆信息发送给服务器端
 			sendChan <- ONLINE + "|" + userName
 
-			// 给服务器发送信息直到程序退出：
 			fmt.Println("你可以开始聊天了，按Q退出聊天室")
 
 			break
@@ -174,15 +226,12 @@ func doClientSendData(conn net.Conn) {
 func doClientRecvData(conn net.Conn) {
 	for {
 		buf := make([]byte, 512)  //创建一个字节流
-		msg_len, err := conn.Read(buf)  //将读取的字节流赋值给msg_read和err
-		if msg_len == 0 || err != nil {  //如果字节流为0或者有错误
+		msgLen, err := conn.Read(buf)  //将读取的字节流赋值给msg_read和err
+		if msgLen == 0 || err != nil {  //如果字节流为0或者有错误
 			break
 		}
 
-		recvChan <- string(buf[:msg_len])
-
-		//fmt.Println("\n" + "from ", string(data[0:msg_read]))  //把字节流转换成字符串
-		//fmt.Print("please type: ")
+		recvChan <- string(buf[:msgLen])
 	}
 }
 

@@ -15,13 +15,21 @@ import (
 // 3. 103：玩家聊天内容
 // 4. 104：玩家下线
 //
-const  (
-	S_HEART_BEAT = "100"
-	S_LOGIN = "101"
-	S_REGISTER = "102"
-	S_ONLINE = "103"
-	S_CHAT = "104"
-	S_OFFLINE = "105"
+const (
+	// 核心
+	HEART = "100"
+	LOGIN = "101"
+	REGISTER = "102"
+	ONLINE = "103"
+	CHAT = "104"
+	OFFLINE = "105"
+
+	// 对聊天方式标示
+	P_CHAT = "@"     // 私聊标示
+	HINT_CHAT = "#"  // 常用语
+
+	PRIVATE_CHAT = "201"
+
 )
 
 const (
@@ -103,20 +111,20 @@ func doServerHandle(conn net.Conn) {
 	for {
 		buf := make([]byte, 512)
 
-		len, err := conn.Read(buf)
-		if len == 0 || err != nil {
+		msgLen, err := conn.Read(buf)
+		if msgLen == 0 || err != nil {
 			fmt.Println("Error reading", err)
 			return //终止程序
 		}
 		// 解析客户端发送过来的数据
-		msg_str := strings.Split(string(buf[0:len]), "|")  //将从客户端收到的字节流分段保存到msg_str这个数组中
+		msg_str := strings.Split(string(buf[0:msgLen]), "|")  //将从客户端收到的字节流分段保存到msg_str这个数组中
 		// msg_str[0] 存放的数数据类型，包括：“online”,“offline”，“chat”
 
 		fmt.Println("from client msg: ", msg_str)
 
 		switch msg_str[0] {
 		// 玩家注册
-		case S_REGISTER:
+		case REGISTER:
 			var toClientMsg string
 			if _,ok := userData[msg_str[1]] ; ok {
 				toClientMsg = "用户已存在，请重新注册!"
@@ -129,7 +137,7 @@ func doServerHandle(conn net.Conn) {
 			// 传回给客户端
 			conn.Write([]byte(toClientMsg + "\n"))
 		// 玩家登陆
-		case S_LOGIN:
+		case LOGIN:
 			var toClientMsg string
 			var isSuccess bool = false
 			user,ok := userData[msg_str[1]]
@@ -155,8 +163,7 @@ func doServerHandle(conn net.Conn) {
 
 			}
 
-		// 玩家登陆上线
-		case S_ONLINE:
+		case ONLINE:  // 玩家登陆上线
 			clt := client{make(chan string), user{msg_str[1], clientAddr, clientAddr, true}}
 			onlineClients[msg_str[1]] = clt
 
@@ -169,8 +176,7 @@ func doServerHandle(conn net.Conn) {
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
-		// 玩家的聊天内容，转发给客户端
-		case S_CHAT:
+		case CHAT:  // 玩家的聊天内容，转发给客户端
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "[" + msg_str[1] + "]： " + msg_str[2]
@@ -178,8 +184,33 @@ func doServerHandle(conn net.Conn) {
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
-		// 玩家的下线通知
-		case S_OFFLINE:
+		case P_CHAT:   //私聊获取所有玩家列表
+			//var toClientMsg string = P_CHAT + "|"
+			//if len(msg_str) == 1 {   // client端只输入“@”调起所有用户列表
+			//	var allUserName string
+			//	for name, _ := range userData {
+			//		allUserName = allUserName + " " + name
+			//	}
+			//	toClientMsg = toClientMsg + allUserName
+			//
+			//} else {   // client端确定私聊用户 “@” + 用户名
+			//	p_name := msg_str[1]
+			//	if _,ok := userData[p_name] ; ok {
+			//		toClientMsg = toClientMsg + "success"
+			//	}
+			//}
+			//fmt.Println("p_char", toClientMsg)
+			//// 传回给客户端
+			//conn.Write([]byte(toClientMsg + "\n"))
+			for nickStr, clt := range onlineClients {
+				if nickStr == msg_str[1] {
+					toMsgChanStr := "[" + msg_str[2] + "]： " + msg_str[3]
+					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
+				}
+			}
+		case PRIVATE_CHAT:  //私聊具体内容
+
+		case OFFLINE:  // 玩家的下线通知
 			fmt.Printf("玩家[%s]上线！", msg_str[1])
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {
@@ -190,7 +221,7 @@ func doServerHandle(conn net.Conn) {
 			// 将退出玩家从在线玩家列表中删除
 			delete(onlineClients, msg_str[1])
 			// 心跳包
-		case S_HEART_BEAT:
+		case HEART:
 			fmt.Println("heartBeat Msg ----->", msg_str[1])
 			heartMsgChan <- msg_str[1]
 		}
