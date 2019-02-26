@@ -2,7 +2,8 @@
 // 1. 凡是需要导出的数据结构，都需要将各个字段写成大写，包括JSON的转换
 // 2. int 转 string: 务必使用strconv.Itoa()来进行转换，使用string()可能导致乱码
 // 3. int -> string:  strconv.Itoa()    string -> int：  strconv.Atoi()
-//
+// 4. 遇到map表下存储数组（切片）的情况，直接将已填充好数据的数组塞进map对应的字段中，会存在报错提示：chatRooms[index].users = []string{"aaaa", "bbb"}，这时候就会报错。在初始化时应该为使用地址传递的方式。var chatRooms = make(map[int]*chatRoom)
+// 5. 在多次读写文件时，发现转为json格式存入文件总是莫名其妙多了个“}”,导致读取文件的时候，因json格式错误，而读取不出来。这时候通过增加os.O_TRUNC类型的方式解决，既每次写文件都清空当前文件内容
 //
 //
 //
@@ -187,7 +188,7 @@ func doServerHandle(conn net.Conn) {
 				curRoomName := chatRooms[index].RoomName
 
 				// 进入聊天室成功，保存玩家数据,写入房间id
-				InsertDataToFile(USER_FILE_NAME,userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, index )
+				InsertDataToFile(USER_FILE_NAME, userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, index)
 
 				// 写入成功登录之后的连接对象map
 				var onlineClients = chatRooms[index].clients
@@ -231,9 +232,6 @@ func doServerHandle(conn net.Conn) {
 			}
 		case CHAT:  // 玩家的聊天内容，转发给客户端
 			curRoomId := userData[msg_str[1]].RoomId
-			fmt.Println("chatRooms[0].clients", chatRooms[curRoomId].clients)
-			fmt.Println("chatRooms[1].clients", chatRooms[1].clients)
-			fmt.Println("chatRooms[2].clients", chatRooms[2].clients)
 			for nickStr, clt := range chatRooms[curRoomId].clients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "[" + msg_str[1] + "]： " + msg_str[2]
