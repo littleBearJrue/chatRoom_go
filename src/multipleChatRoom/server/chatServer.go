@@ -149,7 +149,7 @@ func doServerHandle(conn net.Conn) {
 				toClientMsg = "registerSuccess"
 			}
 			// 传回给客户端
-			conn.Write([]byte(toClientMsg + "\n"))
+			sendMsgToSelf(toClientMsg + "\n", conn)
 		// 玩家登陆
 		case LOGIN:
 			var toClientMsg string
@@ -170,7 +170,7 @@ func doServerHandle(conn net.Conn) {
 				toClientMsg = "用户名输入错误!"
 			}
 			// 传回给客户端
-			conn.Write([]byte(toClientMsg + "\n"))
+			sendMsgToSelf(toClientMsg + "\n", conn)
 
 			// 玩家登陆成功
 			if isSuccess == true {
@@ -187,7 +187,7 @@ func doServerHandle(conn net.Conn) {
 				}
 				fmt.Println("ROOM_CHOICE", toClientRoomStr)
 				// 传回给客户端
-				conn.Write([]byte(toClientRoomStr + "\n"))
+				sendMsgToSelf(toClientRoomStr + "\n", conn)
 			} else {
 				// 根据玩家选择的聊天室进入对于聊天室展开对话
 				index,_:= strconv.Atoi(msg_str[1])
@@ -196,14 +196,14 @@ func doServerHandle(conn net.Conn) {
 				toClientMsg := "欢迎你进入" + curRoomName + "聊天室！此聊天室总人数为100人"
 
 				// 传回给客户端
-				conn.Write([]byte(toClientMsg + "\n"))
+				sendMsgToSelf(toClientMsg + "\n", conn)
 			}
 
 		case ONLINE:  // 玩家登陆上线
 			clt := client{make(chan string), user{msg_str[1], clientAddr, clientAddr, true}}
 			onlineClients[msg_str[1]] = clt
 
-			go sendMsgToClient(clt, conn)
+			go sendMsgToOthers(clt, conn)
 
 			fmt.Printf("玩家[%s]上线！\n", msg_str[1])
 			for nickStr, clt := range onlineClients {
@@ -270,8 +270,16 @@ func doServerHandle(conn net.Conn) {
 	}
 }
 
+// 转发信息给自己，主要是那些操作是否成功，以及相关提示语
+func sendMsgToSelf(toClientMsg string, conn net.Conn) {
+	_, err := conn.Write([]byte(toClientMsg + "\n"))
+	if err != nil {
+		fmt.Println("conn write to self is error, error is: ", err)
+	}
+}
+
 // 转发用户的数据给其他用户
-func sendMsgToClient(clt client, conn net.Conn){
+func sendMsgToOthers(clt client, conn net.Conn){
 	// 循环遍历每个玩家，将玩家的储存的通道数据一个个通过conn.write转给客户端
 
 	for {
@@ -279,7 +287,7 @@ func sendMsgToClient(clt client, conn net.Conn){
 			fmt.Println("write -----> ", clt.NickName, msgInfo )
 			_, err := conn.Write([]byte(msgInfo + "\n"))
 			if err != nil {
-				fmt.Println("conn write is error, error is: ", err)
+				fmt.Println("conn write to others is error, error is: ", err)
 			}
 		}
 	}
@@ -311,23 +319,29 @@ func readUserDataFromFile(filename string) map[string]user{
 	}
 	defer file.Close()
 	n,_:= file.Read(buf)
-	json.Unmarshal(buf[:n],&userData)
+	jsonErr := json.Unmarshal(buf[:n],&userData)
+	if jsonErr != nil {
+		fmt.Println("Json unmarshal is error, error is: ", jsonErr)
+	}
 	return userData
 }
 
 
 func insertDataToFile(fileName string, userName string, userPassword string, address string){
-	file,err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0766)
-	if err != nil {
+	file,fileErr := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0766)
+	if fileErr != nil {
 		fmt.Println("file is not exit!")
 	}
 	defer file.Close()
 	userData[userName] = user{userName,userPassword,address, true }
-	fmt.Println("insertDataToFile", userData)
-	data, _ := json.Marshal(userData)
-	fmt.Println("json", data)
-	fmt.Println("stringFromJson", string(data))
-	file.WriteString(string(data))
+	data, jsonErr := json.Marshal(userData)
+	if jsonErr != nil {
+		fmt.Println("Json marshal is error, error is: ", jsonErr)
+	}
+	_, err := file.WriteString(string(data))
+	if err != nil {
+		fmt.Println("Write file is error, error is: ", err)
+	}
 }
 
 func addChatRooms() map[int] chatRoom{

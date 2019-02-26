@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3b15bb70-756a-4cc5-9d2a-ca49a782d51b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/chatClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/client/chatClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/chatServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/server/chatServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.go" beforeDir="false" afterPath="$PROJECT_DIR$/test.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,20 +12,20 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/client/chatClient.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-133">
-              <caret line="216" lean-forward="true" selection-start-line="216" selection-end-line="216" />
+            <state relative-caret-position="380">
+              <caret line="258" column="9" lean-forward="true" selection-start-line="258" selection-start-column="9" selection-end-line="258" selection-end-column="9" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server/chatServer.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="57">
-              <caret line="3" column="70" selection-start-line="3" selection-start-column="70" selection-end-line="3" selection-end-column="70" />
+            <state relative-caret-position="698">
+              <caret line="342" column="58" selection-start-line="342" selection-start-column="58" selection-end-line="342" selection-end-column="58" />
             </state>
           </provider>
         </entry>
@@ -65,7 +62,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>S_HEART_BEAT</find>
       <find>S_LOGIN</find>
       <find>S_REGISTER</find>
       <find>S_ONLINE</find>
@@ -87,7 +83,6 @@
       <find>userChatRoomChoice</find>
       <find>ONLINE</find>
       <find>addChatRooms</find>
-      <find>onlineClients</find>
       <find>sendMsgToClient</find>
       <find>P_CHAT</find>
       <find>len</find>
@@ -95,6 +90,8 @@
       <find>trimmedRoomChoice</find>
       <find>from</find>
       <find>strconv</find>
+      <find>onlineClients</find>
+      <find>json</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="C:\Go" />
@@ -109,8 +106,8 @@
         <option value="$PROJECT_DIR$/chatServer.go" />
         <option value="$PROJECT_DIR$/jsonTest.go" />
         <option value="$PROJECT_DIR$/test.go" />
-        <option value="$PROJECT_DIR$/server/chatServer.go" />
         <option value="$PROJECT_DIR$/client/chatClient.go" />
+        <option value="$PROJECT_DIR$/server/chatServer.go" />
       </list>
     </option>
   </component>
@@ -270,17 +267,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server/chatServer.go">
+    <entry file="file://$PROJECT_DIR$/client/chatClient.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="57">
-          <caret line="3" column="70" selection-start-line="3" selection-start-column="70" selection-end-line="3" selection-end-column="70" />
+        <state relative-caret-position="380">
+          <caret line="258" column="9" lean-forward="true" selection-start-line="258" selection-start-column="9" selection-end-line="258" selection-end-column="9" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/client/chatClient.go">
+    <entry file="file://$PROJECT_DIR$/server/chatServer.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-133">
-          <caret line="216" lean-forward="true" selection-start-line="216" selection-end-line="216" />
+        <state relative-caret-position="698">
+          <caret line="342" column="58" selection-start-line="342" selection-start-column="58" selection-end-line="342" selection-end-column="58" />
         </state>
       </provider>
     </entry>
