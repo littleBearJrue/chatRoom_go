@@ -32,6 +32,7 @@ func ReadChatDataFromFile(fileName string) map[int]*chatRoom {
 	if len(chatRoomData) == 0 {
 		chatRoomData = initChatRooms()
 	}
+	fmt.Println("read_chatRoomData-------->", chatRoomData)
 	return chatRoomData
 }
 
@@ -65,7 +66,7 @@ func ReadUserDataFromFile(filename string) map[string]user{
 	//if jsonErr != nil {
 	//	fmt.Println("Json unmarshal is error, error is: ", jsonErr)
 	//}
-	fmt.Println("userData-------->", userData)
+	fmt.Println("read_userData-------->", userData)
 	return userData
 }
 
@@ -76,14 +77,11 @@ func InsertDataToFile(fileName string, userName string, userPassword string, add
 		fmt.Println("file is not exit!")
 	}
 	defer file.Close()
-	userData[userName] = user{userName,userPassword,address,roomId, true}
-	fmt.Println("origin_userData----->", userData)
+	userData[userName] = user{NickName:userName,Password:userPassword,Address:address,RoomId:roomId, IsOnline:true}
 	data, jsonErr := json.Marshal(userData)
-	fmt.Println("json_userData------>", data)
 	if jsonErr != nil {
 		fmt.Println("Json marshal is error, error is: ", jsonErr)
 	}
-	fmt.Println("string_userData----->", string(data))
 	_, err := file.WriteString(string(data))
 	if err != nil {
 		fmt.Println("Write file is error, error is: ", err)

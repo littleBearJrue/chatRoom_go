@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 // 定义协议码
 // 1. 101 :玩家注册登陆
@@ -134,6 +135,7 @@ func Main() {
 		case Exit:
 			// 退出聊天
 			sendChan <- OFFLINE + "|" + userName  //将quit字节流发送给服务器端
+			time.Sleep(1 * time.Second)   // 延时1s执行退出
 			return
 		default:
 			// 默认群发

@@ -65,6 +65,12 @@ type user struct {
 	Address string    // 用户ip地址
 	RoomId int        // 用户所在房间id
 	IsOnline bool     // 用户是否在线
+	ContentRecord map[int]map[string] []chatLog   // 聊天记录 key1: roomId, key2:"all" or "someone", value: chatLog ==> 某个房间内收到的某个人或者所有人的聊天记录
+}
+
+type chatLog struct {
+	chatTime int32   //聊天时间节点
+	content []string  // 具体聊天内容
 }
 
 type client struct {
@@ -78,6 +84,9 @@ var chatRooms = make(map[int]*chatRoom)
 // 定义用户数据
 var userData = make(map[string] user)
 
+// 聊天记录数据
+var chatHistory = make( map[int]map[string] []chatLog)
+
 var heartMsgChan chan string
 
 func Main() {
@@ -87,7 +96,7 @@ func Main() {
 	chatRooms = ReadChatDataFromFile(CHAT_ROOM_FILE_NAME)
 	// 再读取用户相关数据库
 	userData = ReadUserDataFromFile(USER_FILE_NAME)
-
+	// 最后再读取玩家的聊天记录，查看是否存在离线记录
 	// 启动服务
 	startSocket()
 }
@@ -191,7 +200,10 @@ func doServerHandle(conn net.Conn) {
 				InsertDataToFile(USER_FILE_NAME, userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, index)
 
 				// 写入成功登录之后的连接对象map
-				var onlineClients = chatRooms[index].clients
+				var onlineClients = make(map[string] client)
+				if chatRooms[index].clients != nil && len(chatRooms[index].clients) > 0{
+					onlineClients = chatRooms[index].clients
+				}
 				clt := client{make(chan string), msg_str[1]}
 				onlineClients[msg_str[1]] = clt
 
@@ -222,6 +234,9 @@ func doServerHandle(conn net.Conn) {
 				go sendMsgToOthers(clt, conn)
 			}
 		case ONLINE:  // 玩家登陆上线
+
+			sendMsgToSelf("这是模拟上线接收到的离线消息： [111]: 你好" + "\n", conn)
+
 			fmt.Printf("玩家[%s]上线！\n", msg_str[1])
 			curRoomId := userData[msg_str[1]].RoomId
 			for nickStr, clt := range chatRooms[curRoomId].clients {
@@ -231,6 +246,10 @@ func doServerHandle(conn net.Conn) {
 				}
 			}
 		case CHAT:  // 玩家的聊天内容，转发给客户端
+			// ContentRecord map[int]map[string] []chatLog   // 聊天记录 key1: roomId, key2:"all" or "someone", value: chatLog ==> 某个房间内收到某个人或者所有人的聊天记录
+
+
+
 			curRoomId := userData[msg_str[1]].RoomId
 			for nickStr, clt := range chatRooms[curRoomId].clients {
 				if nickStr != msg_str[1] {
@@ -309,6 +328,7 @@ func sendMsgToOthers(clt client, conn net.Conn){
 			_, err := conn.Write([]byte(msgInfo + "\n"))
 			if err != nil {
 				fmt.Println("conn write to others is error, error is: ", err)
+				// 在这里储存玩家的离线聊天记录
 			}
 		}
 	}
