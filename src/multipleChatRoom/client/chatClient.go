@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
 // 定义协议码
@@ -30,6 +31,8 @@ const (
 
 	PRIVATE_CHAT = "201"
 )
+
+var MAX_ROMM_NUM = 5
 
 // 接收数据的通道
 var recvChan = make(chan string)
@@ -60,20 +63,21 @@ func Main() {
 	// 创建一个协程不停的从recvChan通道中读取数据写进conn中
 	go doClientSendData(conn)
 
-
 	fmt.Println("连接成功！请进行以下操作：1、登录  2、注册")
 	inputReader := bufio.NewReader(os.Stdin)
-	userChoice, _ := inputReader.ReadString('\n')
-	choiceInput := strings.Trim(userChoice, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
-	// 玩家登陆操作
-	if choiceInput == "1" {
-		userLogin(inputReader)
-	// 玩家注册操作
-	}else if choiceInput == "2" {
-		userRegister(inputReader)
-	}else {
-		fmt.Println("输入错误！")
-		return
+	LOOP :{
+		userChoice, _ := inputReader.ReadString('\n')
+		choiceInput := strings.Trim(userChoice, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+		// 玩家登陆操作
+		if choiceInput == "1" {
+			userLogin(inputReader)
+			// 玩家注册操作
+		}else if choiceInput == "2" {
+			userRegister(inputReader)
+		}else {
+			fmt.Println("输入错误！请重新输入: ")
+			goto LOOP
+		}
 	}
 
 	// 开启一个线程显示获取到server数据
@@ -160,16 +164,27 @@ func userLogin(inputReader *bufio.Reader ) {
 
 			// 收到目前已有的聊天室供玩家选择
 			fmt.Println("恭喜你登陆成功，请先选择你要加入的聊天室：")
+			// 往通道中放入请求房间列表的数据
 			sendChan <- ROOM_CHOICE
 
-			fmt.Println("ROOM_CHOICE", len(recvChan))
 			// 从接收通道中读取服务器数据，得到登陆结果
 			response := <- recvChan
 			trimmedResponse := strings.Trim(response, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+			responseStr := strings.Split(trimmedResponse, "|")
+			MAX_ROMM_NUM, _ = strconv.Atoi(responseStr[0])
 			// 根据后端传过来的聊天室信息展示
 			fmt.Println(trimmedResponse)
-			roomChoice, _ := inputReader.ReadString('\n')
-			trimmedRoomChoice := strings.Trim(roomChoice, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+			var trimmedRoomChoice string
+			RECHOICE: {
+				roomChoice, _ := inputReader.ReadString('\n')
+				trimmedRoomChoice = strings.Trim(roomChoice, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
+				index, _ := strconv.Atoi(trimmedRoomChoice)
+				if index >= MAX_ROMM_NUM {
+					fmt.Println("选择有误！请重新输入：")
+					goto RECHOICE
+				}
+			}
+
 			sendChan <- ROOM_CHOICE + "|" + trimmedRoomChoice
 
 			// 从接收通道中读取服务器数据，得到登陆结果
@@ -255,7 +270,7 @@ func doClientRecvData(conn net.Conn) {
 func displayMsgContent() {
 	for {
 		msg :=<- recvChan
-		fmt.Println("\n" + "from ", string(msg))  //把字节流转换成字符串
+		fmt.Println("\n" +  string(msg))  //把字节流转换成字符串
 		fmt.Print("please type: ")
 	}
 }

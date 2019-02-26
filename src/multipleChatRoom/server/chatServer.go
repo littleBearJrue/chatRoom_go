@@ -1,3 +1,14 @@
+// 总结：
+// 1. 凡是需要导出的数据结构，都需要将各个字段写成大写，包括JSON的转换
+// 2. int 转 string: 务必使用strconv.Itoa()来进行转换，使用string()可能导致乱码
+// 3. int -> string:  strconv.Itoa()    string -> int：  strconv.Atoi()
+//
+//
+//
+//
+//
+
+
 package server
 
 import (
@@ -168,9 +179,10 @@ func doServerHandle(conn net.Conn) {
 		case ROOM_CHOICE:   //选择聊天室
 			// 将聊天室列表传给客户端提供选择
 			if len(msg_str) == 1 {
-				var toClientRoomStr string
+				var toClientRoomStr = strconv.Itoa(len(chatRooms)) + "|"
 				for i, chatRoom := range chatRooms{
-					roomName := string(i) + "." + chatRoom.RoomName + "\n"
+					// 这里int 转 string 务必使用strconv.Itoa()，使用string()会出现乱码
+					roomName := strconv.Itoa(i) + "." + chatRoom.RoomName + "\n"
 					toClientRoomStr = toClientRoomStr + roomName
 				}
 				fmt.Println("ROOM_CHOICE", toClientRoomStr)
@@ -193,7 +205,7 @@ func doServerHandle(conn net.Conn) {
 
 			go sendMsgToClient(clt, conn)
 
-			fmt.Printf("玩家[%s]上线！", msg_str[1])
+			fmt.Printf("玩家[%s]上线！\n", msg_str[1])
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "玩家" + "[" + msg_str[1] + "]" + "已上线，你们可以欢快的聊天了"
@@ -201,15 +213,13 @@ func doServerHandle(conn net.Conn) {
 				}
 			}
 		case CHAT:  // 玩家的聊天内容，转发给客户端
-			fmt.Println("len of onlineClients: ", len(onlineClients))
 			for nickStr, clt := range onlineClients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "[" + msg_str[1] + "]： " + msg_str[2]
-					fmt.Println("say ------>" + nickStr + " " + msg_str[1] + toMsgChanStr )
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
-		case P_CHAT:   //私聊具体内容
+		case P_CHAT:   //私聊具体内容 msg_str[1]:私聊的玩家   msg_str[2]：发送信息的玩家 msg_str[3]：聊天的具体内容
 			//var toClientMsg string = P_CHAT + "|"
 			//if len(msg_str) == 1 {   // client端只输入“@”调起所有用户列表
 			//	var allUserName string
@@ -227,10 +237,17 @@ func doServerHandle(conn net.Conn) {
 			//fmt.Println("p_char", toClientMsg)
 			//// 传回给客户端
 			//conn.Write([]byte(toClientMsg + "\n"))
+
+			// 假如输入的私聊玩家是自己，则提醒客户端
+			var toClientMsg string
+			if msg_str[1] == msg_str[2] {
+				toClientMsg = "不能跟自己私聊！"
+			} else {
+				toClientMsg = "[" + msg_str[2] + "]： " + msg_str[3]
+			}
 			for nickStr, clt := range onlineClients {
 				if nickStr == msg_str[1] {
-					toMsgChanStr := "[" + msg_str[2] + "]： " + msg_str[3]
-					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
+					clt.chatChan <- toClientMsg   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
 		case PRIVATE_CHAT:
@@ -316,7 +333,7 @@ func insertDataToFile(fileName string, userName string, userPassword string, add
 func addChatRooms() map[int] chatRoom{
 	chatRoomName := []string{"天蝎座", "天秤座", "金羊座", "摩羯座", "处女座"}
 	rooms := make(map[int] chatRoom)
-	for i := 1; i < len(chatRoomName); i++ {
+	for i := 0; i < len(chatRoomName); i++ {
 		rooms[i] = chatRoom{i, chatRoomName[i]}
 	}
 	return rooms

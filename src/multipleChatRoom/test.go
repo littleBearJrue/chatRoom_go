@@ -1,13 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 func main() {
-	string := "@"
-	switch string {
-	case "@":
-		fmt.Println("@")
-	default:
-		fmt.Println("default!!!")
+	for i := 0; i < 5; i++ {
+		fmt.Println("index_int: ", i)
+		fmt.Println("index_str: ",string(i) )
+		fmt.Println("index_str: ",strconv.Itoa(i) )
 	}
 }
