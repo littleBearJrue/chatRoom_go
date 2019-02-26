@@ -173,7 +173,7 @@ func userLogin(inputReader *bufio.Reader ) {
 			responseStr := strings.Split(trimmedResponse, "|")
 			MAX_ROMM_NUM, _ = strconv.Atoi(responseStr[0])
 			// 根据后端传过来的聊天室信息展示
-			fmt.Println(trimmedResponse)
+			fmt.Println(responseStr[1])
 			var trimmedRoomChoice string
 			RECHOICE: {
 				roomChoice, _ := inputReader.ReadString('\n')
@@ -184,14 +184,15 @@ func userLogin(inputReader *bufio.Reader ) {
 					goto RECHOICE
 				}
 			}
-
-			sendChan <- ROOM_CHOICE + "|" + trimmedRoomChoice
+			// 通知server玩家进入的聊天室
+			sendChan <- ROOM_CHOICE + "|" + userName + "|" + trimmedRoomChoice
 
 			// 从接收通道中读取服务器数据，得到登陆结果
 			enterRoomMsg := <- recvChan
+			// 展示server端发送过来的数据
 			fmt.Println(enterRoomMsg)
 			fmt.Println("你可以开始聊天了，按Q退出聊天室")
-			//
+
 			// 将玩家登陆信息发送给服务器端
 			sendChan <- ONLINE + "|" + userName
 			break

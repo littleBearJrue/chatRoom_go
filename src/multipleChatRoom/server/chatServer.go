@@ -12,7 +12,6 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -45,48 +44,49 @@ const (
 )
 
 const (
-	USER_FILE_NAME = "userData.txt"
 	CHAT_ROOM_FILE_NAME = "roomData.txt"
-	CAHT_CONTENT_FILE_NAME = "chatContentData.txt"
+	USER_FILE_NAME = "userData.txt"
 )
 
 // 注意：所有需要导出的结构都需要大写
 // 定义聊天室基本数据
 type chatRoom struct {
-	RoomId int
-	RoomName string
-	//Clients map[int] client
-}
-
-type user struct {
-	NickName string
-	Password string
-	Address string
-	IsOnline bool
+	RoomId int          // 房间id
+	RoomName string     // 房间名
+	Users []string      // 已登录过此房间的用户，这里保存用户名，映射用户表，可获取用户的具体数据
+	clients map[string] client // 持有每个客户端的连接
 }
 
 // 定义client存储用户的基本数据
-type client struct {
-	chatChan chan string
-	user
+type user struct {
+	NickName string    // 用户昵称
+	Password string    // 用户密码
+	Address string    // 用户ip地址
+	RoomId int        // 用户所在房间id
+	IsOnline bool     // 用户是否在线
 }
 
-// 定义一个map表存储在线的所有玩家信息 key：nickName, client:client实体
-var onlineClients = make(map[string] client)
+type client struct {
+	chatChan chan string
+	userName string
+}
 
 // 定义一个map表储存所有聊天室信息
-var chatRooms = make(map[int] chatRoom)
+var chatRooms = make(map[int]*chatRoom)
 
+// 定义用户数据
 var userData = make(map[string] user)
 
 var heartMsgChan chan string
 
 func Main() {
 	fmt.Println("Starting the chat server ...")
-	// 优先读取数据库数据
-	userData = readUserDataFromFile(USER_FILE_NAME)
-	// 更新聊天室数据
-	chatRooms = addChatRooms()
+
+	// 优先读取房间数据库数据,如果没有，则初始化一份房间数据表
+	chatRooms = ReadChatDataFromFile(CHAT_ROOM_FILE_NAME)
+	// 再读取用户相关数据库
+	userData = ReadUserDataFromFile(USER_FILE_NAME)
+
 	// 启动服务
 	startSocket()
 }
@@ -144,8 +144,11 @@ func doServerHandle(conn net.Conn) {
 				toClientMsg = "用户已存在，请重新注册!"
 				fmt.Println(toClientMsg)
 			} else {
-				// 将新用户数据写入文件中
-				insertDataToFile(USER_FILE_NAME, msg_str[1], msg_str[2], clientAddr)
+				// TODO 注册成功将新用户数据写入文件中，此时因为用户尚未进入聊天室，尚未保存roomId
+				InsertDataToFile(USER_FILE_NAME, msg_str[1], msg_str[2], clientAddr, -1)
+
+				fmt.Println("userData----->", userData)
+
 				toClientMsg = "registerSuccess"
 			}
 			// 传回给客户端
@@ -153,16 +156,10 @@ func doServerHandle(conn net.Conn) {
 		// 玩家登陆
 		case LOGIN:
 			var toClientMsg string
-			var isSuccess bool = false
 			user,ok := userData[msg_str[1]]
-			fmt.Println("ok", ok)
-
 			if ok {
-				fmt.Println("msg_str[2]", msg_str[2])
-				fmt.Println("user.Password", user.Password)
 				if user.Password == msg_str[2] {
 					toClientMsg = "loginSuccess"
-					isSuccess = true
 				}else{
 					toClientMsg = "密码输入错误!"
 				}
@@ -171,11 +168,6 @@ func doServerHandle(conn net.Conn) {
 			}
 			// 传回给客户端
 			sendMsgToSelf(toClientMsg + "\n", conn)
-
-			// 玩家登陆成功
-			if isSuccess == true {
-
-			}
 		case ROOM_CHOICE:   //选择聊天室
 			// 将聊天室列表传给客户端提供选择
 			if len(msg_str) == 1 {
@@ -189,31 +181,60 @@ func doServerHandle(conn net.Conn) {
 				// 传回给客户端
 				sendMsgToSelf(toClientRoomStr + "\n", conn)
 			} else {
+
 				// 根据玩家选择的聊天室进入对于聊天室展开对话
-				index,_:= strconv.Atoi(msg_str[1])
+				index,_:= strconv.Atoi(msg_str[2])
 				curRoomName := chatRooms[index].RoomName
+
+				// 进入聊天室成功，保存玩家数据,写入房间id
+				InsertDataToFile(USER_FILE_NAME,userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, index )
+
+				// 写入成功登录之后的连接对象map
+				var onlineClients = chatRooms[index].clients
+				clt := client{make(chan string), msg_str[1]}
+				onlineClients[msg_str[1]] = clt
+
+
+				// 将房间数据保存到文件中
+				var isInsert bool = true
+				for _, name := range chatRooms[index].Users {
+					if name == msg_str[1] {
+						isInsert = false
+					}
+				}
+				// 不存在的时候才插入
+				if isInsert {
+					chatRooms[index].Users = append(chatRooms[index].Users, msg_str[1])
+				}
+
+				// 不保存clients字段
+				InsertChatRoomsDataToFile(CHAT_ROOM_FILE_NAME, index, chatRooms[index].RoomName, chatRooms[index].Users)
+
+				chatRooms[index].clients = onlineClients
+
 				// 获取该聊天室的总人数
-				toClientMsg := "欢迎你进入" + curRoomName + "聊天室！此聊天室总人数为100人"
+				toClientMsg := "欢迎你进入" + curRoomName + "聊天室！此聊天室总人数为" + strconv.Itoa(len(chatRooms[index].Users)) + "人"
 
 				// 传回给客户端
 				sendMsgToSelf(toClientMsg + "\n", conn)
+
+				go sendMsgToOthers(clt, conn)
 			}
-
 		case ONLINE:  // 玩家登陆上线
-			clt := client{make(chan string), user{msg_str[1], clientAddr, clientAddr, true}}
-			onlineClients[msg_str[1]] = clt
-
-			go sendMsgToOthers(clt, conn)
-
 			fmt.Printf("玩家[%s]上线！\n", msg_str[1])
-			for nickStr, clt := range onlineClients {
+			curRoomId := userData[msg_str[1]].RoomId
+			for nickStr, clt := range chatRooms[curRoomId].clients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "玩家" + "[" + msg_str[1] + "]" + "已上线，你们可以欢快的聊天了"
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
 		case CHAT:  // 玩家的聊天内容，转发给客户端
-			for nickStr, clt := range onlineClients {
+			curRoomId := userData[msg_str[1]].RoomId
+			fmt.Println("chatRooms[0].clients", chatRooms[curRoomId].clients)
+			fmt.Println("chatRooms[1].clients", chatRooms[1].clients)
+			fmt.Println("chatRooms[2].clients", chatRooms[2].clients)
+			for nickStr, clt := range chatRooms[curRoomId].clients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "[" + msg_str[1] + "]： " + msg_str[2]
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
@@ -245,7 +266,8 @@ func doServerHandle(conn net.Conn) {
 			} else {
 				toClientMsg = "[" + msg_str[2] + "]： " + msg_str[3]
 			}
-			for nickStr, clt := range onlineClients {
+			curRoomId := userData[msg_str[2]].RoomId
+			for nickStr, clt := range chatRooms[curRoomId].clients {
 				if nickStr == msg_str[1] {
 					clt.chatChan <- toClientMsg   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
@@ -254,14 +276,15 @@ func doServerHandle(conn net.Conn) {
 
 		case OFFLINE:  // 玩家的下线通知
 			fmt.Printf("玩家[%s]下线！'\n'", msg_str[1])
-			for nickStr, clt := range onlineClients {
+			curRoomId := userData[msg_str[1]].RoomId
+			for nickStr, clt := range chatRooms[curRoomId].clients {
 				if nickStr != msg_str[1] {
 					toMsgChanStr := "玩家" + "[" + msg_str[1] + "]" + "已退出聊天室"
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
 			// 将退出玩家从在线玩家列表中删除
-			delete(onlineClients, msg_str[1])
+			delete(chatRooms[curRoomId].clients, msg_str[1])
 
 		case HEART:  // 心跳包
 			fmt.Println("heartBeat Msg ----->", msg_str[1])
@@ -284,7 +307,7 @@ func sendMsgToOthers(clt client, conn net.Conn){
 
 	for {
 		for msgInfo := range clt.chatChan {
-			fmt.Println("write -----> ", clt.NickName, msgInfo )
+			fmt.Println("write -----> ", clt.userName, msgInfo )
 			_, err := conn.Write([]byte(msgInfo + "\n"))
 			if err != nil {
 				fmt.Println("conn write to others is error, error is: ", err)
@@ -309,46 +332,3 @@ func heartBreak(conn net.Conn, timeout int) {
 	}
 }
 
-
-func readUserDataFromFile(filename string) map[string]user{
-	buf := make([]byte, 10 * 1024)
-	userData := make(map[string]user)
-	file,err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0766)
-	if err != nil {
-		fmt.Println("open file error")
-	}
-	defer file.Close()
-	n,_:= file.Read(buf)
-	jsonErr := json.Unmarshal(buf[:n],&userData)
-	if jsonErr != nil {
-		fmt.Println("Json unmarshal is error, error is: ", jsonErr)
-	}
-	return userData
-}
-
-
-func insertDataToFile(fileName string, userName string, userPassword string, address string){
-	file,fileErr := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0766)
-	if fileErr != nil {
-		fmt.Println("file is not exit!")
-	}
-	defer file.Close()
-	userData[userName] = user{userName,userPassword,address, true }
-	data, jsonErr := json.Marshal(userData)
-	if jsonErr != nil {
-		fmt.Println("Json marshal is error, error is: ", jsonErr)
-	}
-	_, err := file.WriteString(string(data))
-	if err != nil {
-		fmt.Println("Write file is error, error is: ", err)
-	}
-}
-
-func addChatRooms() map[int] chatRoom{
-	chatRoomName := []string{"天蝎座", "天秤座", "金羊座", "摩羯座", "处女座"}
-	rooms := make(map[int] chatRoom)
-	for i := 0; i < len(chatRoomName); i++ {
-		rooms[i] = chatRoom{i, chatRoomName[i]}
-	}
-	return rooms
-}
