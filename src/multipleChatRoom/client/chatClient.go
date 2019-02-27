@@ -196,7 +196,7 @@ func userLogin(inputReader *bufio.Reader ) {
 			fmt.Println("你可以开始聊天了，按Q退出聊天室")
 
 			// 将玩家登陆信息发送给服务器端
-			sendChan <- ONLINE + "|" + userName
+			sendChan <- ONLINE + "|" + userName + "|"
 			break
 		} else {
 			// 打印错误消息

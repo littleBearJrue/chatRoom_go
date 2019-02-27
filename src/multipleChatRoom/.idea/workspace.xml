@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3b15bb70-756a-4cc5-9d2a-ca49a782d51b" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/chatClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/client/chatClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/FileUtil.go" beforeDir="false" afterPath="$PROJECT_DIR$/server/FileUtil.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/chatServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/server/chatServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.go" beforeDir="false" afterPath="$PROJECT_DIR$/test.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,8 +19,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/client/chatClient.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="796">
-              <caret line="137" column="53" selection-start-line="137" selection-start-column="53" selection-end-line="137" selection-end-column="53" />
+            <state relative-caret-position="4627">
+              <caret line="275" column="54" lean-forward="true" selection-start-line="275" selection-start-column="54" selection-end-line="275" selection-end-column="54" />
             </state>
           </provider>
         </entry>
@@ -26,10 +28,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server/chatServer.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-610">
-              <caret line="202" column="17" selection-start-line="202" selection-start-column="17" selection-end-line="202" selection-end-column="17" />
+            <state relative-caret-position="625">
+              <caret line="282" lean-forward="true" selection-start-line="282" selection-end-line="282" />
               <folding>
-                <element signature="e#321#381#0" expanded="true" />
+                <element signature="e#492#552#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -38,17 +40,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/server/FileUtil.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="365">
-              <caret line="34" column="58" selection-start-line="34" selection-start-column="58" selection-end-line="34" selection-end-column="58" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Desktop/server.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="788">
-              <caret line="308" column="61" lean-forward="true" selection-start-line="308" selection-start-column="61" selection-end-line="308" selection-end-column="61" />
+            <state relative-caret-position="76">
+              <caret line="73" column="21" selection-start-line="73" selection-start-column="5" selection-end-line="73" selection-end-column="21" />
+              <folding>
+                <element signature="e#16#56#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -77,12 +73,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>P_CHAT</find>
-      <find>len</find>
-      <find>choiceInput</find>
-      <find>trimmedRoomChoice</find>
-      <find>from</find>
-      <find>strconv</find>
       <find>json</find>
       <find>ONLINE</find>
       <find>readUserDataFromFile</find>
@@ -97,15 +87,21 @@
       <find>index</find>
       <find>sendMsgToOthers</find>
       <find>uData</find>
-      <find>InsertChatRoomsDataToFile</find>
       <find>password</find>
-      <find>userData</find>
       <find>CHAT_ROOM_FILE_NAME</find>
       <find>onlineClients</find>
       <find>chatRooms</find>
       <find>ReadUserDataFromFile</find>
       <find>users</find>
       <find>Exit</find>
+      <find>chatLog</find>
+      <find>user</find>
+      <find>clients</find>
+      <find>InsertChatRoomsDataToFile</find>
+      <find>chatLogs</find>
+      <find>ReadChatRecordDataFromFile</find>
+      <find>RoomId</find>
+      <find>userData</find>
       <find>InsertDataToFile</find>
     </findStrings>
   </component>
@@ -120,18 +116,17 @@
         <option value="$PROJECT_DIR$/chatClient.go" />
         <option value="$PROJECT_DIR$/chatServer.go" />
         <option value="$PROJECT_DIR$/jsonTest.go" />
-        <option value="$PROJECT_DIR$/test.go" />
         <option value="$PROJECT_DIR$/main.go" />
         <option value="$PROJECT_DIR$/server.go" />
         <option value="$PROJECT_DIR$/client/chatClient.go" />
+        <option value="$PROJECT_DIR$/test.go" />
         <option value="$PROJECT_DIR$/server/FileUtil.go" />
         <option value="$PROJECT_DIR$/server/chatServer.go" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="-68" />
-    <option name="y" value="45" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-52" />
     <option name="width" value="1257" />
     <option name="height" value="1407" />
   </component>
@@ -141,7 +136,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -163,6 +157,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -186,7 +181,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Go Build.go build test.go">
+  <component name="RunManager" selected="Go Build.go build chatClient.go">
     <configuration name="go build chatClient.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="multipleChatRoom" />
       <working_directory value="$PROJECT_DIR$/" />
@@ -221,24 +216,24 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Build.go build chatClient.go" />
         <item itemvalue="Go Build.go build test.go" />
         <item itemvalue="Go Build.go build main.go" />
-        <item itemvalue="Go Build.go build chatClient.go" />
         <item itemvalue="Go Build.go build chatServer.go" />
       </list>
     </recent_temporary>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-68" y="45" width="1257" height="1407" extended-state="0" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.11278196" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.07249467" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.04338395" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.10086768" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.18872017" />
+      <window_info anchor="bottom" id="Debug" order="3" visible="true" weight="0.17678958" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -306,18 +301,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../chatRoom_other/simple-goIm/server.go" />
-    <entry file="file://$PROJECT_DIR$/test.go">
+    <entry file="file://$PROJECT_DIR$/server.go" />
+    <entry file="file://$USER_HOME$/Desktop/server.go" />
+    <entry file="file://$PROJECT_DIR$/../../../chatRoom_other/simple-goIm/server.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1520">
-          <caret line="80" selection-start-line="80" selection-end-line="80" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/server.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="95">
-          <caret line="55" lean-forward="true" selection-start-line="55" selection-end-line="55" />
+        <state relative-caret-position="337">
+          <caret line="39" lean-forward="true" selection-start-line="39" selection-end-line="39" />
         </state>
       </provider>
     </entry>
@@ -331,33 +320,36 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Desktop/server.go">
+    <entry file="file://$PROJECT_DIR$/test.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="788">
-          <caret line="308" column="61" lean-forward="true" selection-start-line="308" selection-start-column="61" selection-end-line="308" selection-end-column="61" />
+        <state relative-caret-position="323">
+          <caret line="17" lean-forward="true" selection-start-line="17" selection-end-line="17" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/client/chatClient.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="796">
-          <caret line="137" column="53" selection-start-line="137" selection-start-column="53" selection-end-line="137" selection-end-column="53" />
+        <state relative-caret-position="4627">
+          <caret line="275" column="54" lean-forward="true" selection-start-line="275" selection-start-column="54" selection-end-line="275" selection-end-column="54" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/server/FileUtil.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="365">
-          <caret line="34" column="58" selection-start-line="34" selection-start-column="58" selection-end-line="34" selection-end-column="58" />
+        <state relative-caret-position="76">
+          <caret line="73" column="21" selection-start-line="73" selection-start-column="5" selection-end-line="73" selection-end-column="21" />
+          <folding>
+            <element signature="e#16#56#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/server/chatServer.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-610">
-          <caret line="202" column="17" selection-start-line="202" selection-start-column="17" selection-end-line="202" selection-end-column="17" />
+        <state relative-caret-position="625">
+          <caret line="282" lean-forward="true" selection-start-line="282" selection-end-line="282" />
           <folding>
-            <element signature="e#321#381#0" expanded="true" />
+            <element signature="e#492#552#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -53,9 +53,9 @@ func InsertChatRoomsDataToFile(fileName string, roomId int, roomName string, use
 	}
 }
 
-func ReadUserDataFromFile(filename string) map[string]user{
+func ReadUserDataFromFile(filename string) map[string]*user{
 	buf := make([]byte, 10 * 1024)
-	userData := make(map[string]user)
+	userData := make(map[string]*user)
 	file,err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0766)
 	if err != nil {
 		fmt.Println("open file error")
@@ -71,14 +71,48 @@ func ReadUserDataFromFile(filename string) map[string]user{
 }
 
 
-func InsertDataToFile(fileName string, userName string, userPassword string, address string, roomId int){
+func InsertDataToFile(fileName string, userName string, userPassword string, address string, roomId int, inOnline bool, offTimeStamp int64){
 	file,fileErr := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
 	if fileErr != nil {
 		fmt.Println("file is not exit!")
 	}
 	defer file.Close()
-	userData[userName] = user{NickName:userName,Password:userPassword,Address:address,RoomId:roomId, IsOnline:true}
+	userData[userName] = &user{NickName:userName,Password:userPassword,Address:address,RoomId:roomId, IsOnline:inOnline, OffLineTime:offTimeStamp}
 	data, jsonErr := json.Marshal(userData)
+	if jsonErr != nil {
+		fmt.Println("Json marshal is error, error is: ", jsonErr)
+	}
+	_, err := file.WriteString(string(data))
+	if err != nil {
+		fmt.Println("Write file is error, error is: ", err)
+	}
+}
+
+func ReadChatRecordDataFromFile(filename string) map[string]map[int]map[string] []chatLog{
+	buf := make([]byte, 10 * 1024)
+	chatRecord := make(map[string]map[int]map[string] []chatLog)
+	file,err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 1111)
+	if err != nil {
+		fmt.Println("open file error")
+	}
+	defer file.Close()
+	n,_:= file.Read(buf)
+	json.Unmarshal(buf[:n],&chatRecord)
+	//if jsonErr != nil {
+	//	fmt.Println("Json unmarshal is error, error is: ", jsonErr)
+	//}
+	fmt.Println("read_chatRecord-------->", chatRecord)
+	return chatRecord
+}
+
+func InsertChatRecordToFile(fileName string, chatRecord map[string]map[int]map[string] []chatLog){
+	fmt.Println("insert_chatRecord:", chatRecord)
+	file,fileErr := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 1111)
+	if fileErr != nil {
+		fmt.Println("file is not exit!")
+	}
+	defer file.Close()
+	data, jsonErr := json.Marshal(chatRecord)
 	if jsonErr != nil {
 		fmt.Println("Json marshal is error, error is: ", jsonErr)
 	}

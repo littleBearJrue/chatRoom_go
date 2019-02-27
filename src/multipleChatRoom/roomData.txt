@@ -1,0 +1,1 @@
+{"0":{"RoomId":0,"RoomName":"天蝎座","Users":["111","333","444"]},"1":{"RoomId":1,"RoomName":"天秤座","Users":["222","555"]},"2":{"RoomId":2,"RoomName":"金羊座","Users":[]},"3":{"RoomId":3,"RoomName":"摩羯座","Users":[]},"4":{"RoomId":4,"RoomName":"处女座","Users":[]}}

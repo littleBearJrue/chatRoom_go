@@ -47,6 +47,7 @@ const (
 const (
 	CHAT_ROOM_FILE_NAME = "roomData.txt"
 	USER_FILE_NAME = "userData.txt"
+	CHAT_OFFLINE_MSG = "chatContentHistory.txt"
 )
 
 // 注意：所有需要导出的结构都需要大写
@@ -65,11 +66,12 @@ type user struct {
 	Address string    // 用户ip地址
 	RoomId int        // 用户所在房间id
 	IsOnline bool     // 用户是否在线
-	ContentRecord map[int]map[string] []chatLog   // 聊天记录 key1: roomId, key2:"all" or "someone", value: chatLog ==> 某个房间内收到的某个人或者所有人的聊天记录
+	OffLineTime int64  // 用户离线时间
+	// ContentRecord map[string]map[int]map[string][]chatLog   // 聊天记录 key1: "who" key2: roomId, key3:"someone", value: chatLog ==> 某人某个房间内收到的某个人或者所有人的聊天记录
 }
 
 type chatLog struct {
-	chatTime int32   //聊天时间节点
+	chatTime int64   //聊天时间节点
 	content []string  // 具体聊天内容
 }
 
@@ -82,10 +84,10 @@ type client struct {
 var chatRooms = make(map[int]*chatRoom)
 
 // 定义用户数据
-var userData = make(map[string] user)
+var userData = make(map[string]*user)
 
 // 聊天记录数据
-var chatHistory = make( map[int]map[string] []chatLog)
+var chatHistory = make(map[string]map[int]map[string] []chatLog)
 
 var heartMsgChan chan string
 
@@ -97,6 +99,8 @@ func Main() {
 	// 再读取用户相关数据库
 	userData = ReadUserDataFromFile(USER_FILE_NAME)
 	// 最后再读取玩家的聊天记录，查看是否存在离线记录
+	chatHistory = ReadChatRecordDataFromFile(CHAT_OFFLINE_MSG)
+
 	// 启动服务
 	startSocket()
 }
@@ -155,7 +159,7 @@ func doServerHandle(conn net.Conn) {
 				fmt.Println(toClientMsg)
 			} else {
 				// TODO 注册成功将新用户数据写入文件中，此时因为用户尚未进入聊天室，尚未保存roomId
-				InsertDataToFile(USER_FILE_NAME, msg_str[1], msg_str[2], clientAddr, -1)
+				InsertDataToFile(USER_FILE_NAME, msg_str[1], msg_str[2], clientAddr, -1, false, -1)
 
 				fmt.Println("userData----->", userData)
 
@@ -197,7 +201,8 @@ func doServerHandle(conn net.Conn) {
 				curRoomName := chatRooms[index].RoomName
 
 				// 进入聊天室成功，保存玩家数据,写入房间id
-				InsertDataToFile(USER_FILE_NAME, userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, index)
+				userData[msg_str[1]].RoomId = index
+				InsertDataToFile(USER_FILE_NAME, userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, index, false, -1)
 
 				// 写入成功登录之后的连接对象map
 				var onlineClients = make(map[string] client)
@@ -234,8 +239,26 @@ func doServerHandle(conn net.Conn) {
 				go sendMsgToOthers(clt, conn)
 			}
 		case ONLINE:  // 玩家登陆上线
+			// 发送给该用户所有的离线消息
+			roomId,_:= strconv.Atoi(msg_str[2])
+			for _, chatLogs := range chatHistory[msg_str[1]][roomId]{
+				for _, chatLog := range chatLogs {
+					// 通过时间戳找到有效的离线消息
+					if chatLog.chatTime >= userData[msg_str[1]].OffLineTime {
+						for _, toClientMsg := range chatLog.content {
+							sendMsgToSelf(toClientMsg + "\n", conn)
+						}
+					}
+				}
+			}
 
-			sendMsgToSelf("这是模拟上线接收到的离线消息： [111]: 你好" + "\n", conn)
+			// 删除已经发送的离线消息
+			if len(chatHistory[msg_str[1]][roomId]) > 0 {
+				chatHistory[msg_str[1]][roomId] = make(map[string] []chatLog)
+				// 将情况的聊天记录保存到文件中
+				InsertChatRecordToFile(CHAT_OFFLINE_MSG, chatHistory)
+			}
+			//sendMsgToSelf("这是模拟上线接收到的离线消息： [111]: 你好" + "\n", conn)
 
 			fmt.Printf("玩家[%s]上线！\n", msg_str[1])
 			curRoomId := userData[msg_str[1]].RoomId
@@ -245,18 +268,61 @@ func doServerHandle(conn net.Conn) {
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
+
+			// 设置玩家状态为在线状态
+			userData[msg_str[1]].IsOnline = true
 		case CHAT:  // 玩家的聊天内容，转发给客户端
-			// ContentRecord map[int]map[string] []chatLog   // 聊天记录 key1: roomId, key2:"all" or "someone", value: chatLog ==> 某个房间内收到某个人或者所有人的聊天记录
-
-
-
+			// ContentRecord map[string]map[int]map[string] []chatLog   // 聊天记录 key1: "who" key2: roomId, key3:"someone", value: chatLog ==> 某人某个房间内收到的某个人或者所有人的聊天记录
 			curRoomId := userData[msg_str[1]].RoomId
-			for nickStr, clt := range chatRooms[curRoomId].clients {
-				if nickStr != msg_str[1] {
-					toMsgChanStr := "[" + msg_str[1] + "]： " + msg_str[2]
-					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
+			toMsgChanStr := "[" + msg_str[1] + "]： " + msg_str[2]
+			for _, userName := range chatRooms[curRoomId].Users {
+				if userName != msg_str[1] {
+					if userData[userName].IsOnline {
+						// 玩家在线的话交给后面出来，直接将msg塞进用户消息通道chan中
+					}else {
+
+						if len(chatHistory[userName]) == 0 {
+							chatHistory[userName] = make(map[int]map[string] []chatLog)
+						}
+						if len(chatHistory[userName][curRoomId]) == 0 {
+							chatHistory[userName][curRoomId] = make(map[string] []chatLog)
+						}
+						chatLogs := chatHistory[userName][curRoomId][msg_str[1]]
+						// 假如已保存了离线记录，则根据时间戳往里面塞数据
+						if len(chatLogs) > 0 {
+							var isSameTime bool = false
+							for _, chatLog := range chatLogs {
+								if chatLog.chatTime == time.Now().Unix() {
+									chatLog.content = append(chatLog.content, toMsgChanStr)
+									isSameTime = true
+								} else {
+									isSameTime = false
+								}
+							}
+							if !isSameTime {
+								chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toMsgChanStr}})
+								chatHistory[userName][curRoomId][msg_str[1]] = chatLogs
+							}
+						}else{
+							chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toMsgChanStr}})
+							chatHistory[userName][curRoomId][msg_str[1]] = chatLogs
+						}
+					}
 				}
 			}
+
+			// 将聊天记录保存到文件中
+			InsertChatRecordToFile(CHAT_OFFLINE_MSG, chatHistory)
+
+			for nickStr, clt := range chatRooms[curRoomId].clients {
+				if nickStr != msg_str[1] {
+					// 如果玩家不在线则保存玩家的离线消息，等到下次玩家上线后同步给玩家
+					if userData[nickStr].IsOnline {
+						clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
+					}
+				}
+			}
+
 		case P_CHAT:   //私聊具体内容 msg_str[1]:私聊的玩家   msg_str[2]：发送信息的玩家 msg_str[3]：聊天的具体内容
 			//var toClientMsg string = P_CHAT + "|"
 			//if len(msg_str) == 1 {   // client端只输入“@”调起所有用户列表
@@ -284,9 +350,55 @@ func doServerHandle(conn net.Conn) {
 				toClientMsg = "[" + msg_str[2] + "]： " + msg_str[3]
 			}
 			curRoomId := userData[msg_str[2]].RoomId
+
+			for _, userName := range chatRooms[curRoomId].Users {
+				if userName == msg_str[1] {
+					if userData[userName].IsOnline {
+						// 玩家在线的话交给后面出来，直接将msg塞进用户消息通道chan中
+						fmt.Println("enter is online!!!!")
+					}else {
+						if len(chatHistory[userName]) == 0 {
+							chatHistory[userName] = make(map[int]map[string] []chatLog)
+						}
+						if len(chatHistory[userName][curRoomId]) == 0 {
+							chatHistory[userName][curRoomId] = make(map[string] []chatLog)
+						}
+						chatLogs := chatHistory[userName][curRoomId][msg_str[2]]
+
+						fmt.Println("chatLogs--->", chatLogs)
+
+						// 假如已保存了离线记录，则根据时间戳往里面塞数据
+						if len(chatLogs) > 0 {
+							var isSameTime bool = false
+							for _, chatLog := range chatLogs {
+								if chatLog.chatTime == time.Now().Unix() {
+									chatLog.content = append(chatLog.content, toClientMsg)
+									isSameTime = true
+								} else {
+									isSameTime = false
+								}
+							}
+							if !isSameTime {
+								chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toClientMsg}})
+								chatHistory[userName][curRoomId][msg_str[2]] = chatLogs
+							}
+						}else{
+							chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toClientMsg}})
+							fmt.Println("after_chatLogs--->", chatLogs)
+							chatHistory[userName][curRoomId][msg_str[2]] = chatLogs
+						}
+					}
+				}
+			}
+
+			// 将聊天记录保存到文件中
+			InsertChatRecordToFile(CHAT_OFFLINE_MSG, chatHistory)
+
 			for nickStr, clt := range chatRooms[curRoomId].clients {
 				if nickStr == msg_str[1] {
-					clt.chatChan <- toClientMsg   // 将上线信息传入每个非自己玩家的聊天通道中
+					if userData[nickStr].IsOnline {
+						clt.chatChan <- toClientMsg   // 将上线信息传入每个非自己玩家的聊天通道中
+					}
 				}
 			}
 		case PRIVATE_CHAT:
@@ -300,6 +412,14 @@ func doServerHandle(conn net.Conn) {
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
+
+			// 设置玩家状态为离线状态
+			userData[msg_str[1]].IsOnline = true
+			// 设置用户离线时间
+			userData[msg_str[1]].OffLineTime = time.Now().Unix()
+			// 将玩家离线前的数据写进文件中保存，保证最新的userData数据是最新的
+			InsertDataToFile(USER_FILE_NAME, userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, userData[msg_str[1]].RoomId, false, time.Now().Unix())
+
 			// 将退出玩家从在线玩家列表中删除
 			delete(chatRooms[curRoomId].clients, msg_str[1])
 
