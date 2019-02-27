@@ -418,9 +418,12 @@ func doServerHandle(conn net.Conn) {
 			delete(chatRooms[curRoomId].clients, msg_str[1])
 
 		case HEART:  // 心跳包
-			fmt.Println("heartBeat Msg ----->", msg_str[2])
+			fmt.Println("_______heartBeat heartMsgChan[msg_str[1]]: ",heartMsgChan[msg_str[1]])
+			// 一旦通道chan为空，则初始化一个通道
+			if heartMsgChan[msg_str[1]] == nil {
+				heartMsgChan[msg_str[1]] = make(chan string)
+			}
 			heartMsgChan[msg_str[1]] <- msg_str[2]
-			fmt.Println("len of heartChan: ", len(heartMsgChan[msg_str[1]]))
 		}
 	}
 }
@@ -450,19 +453,14 @@ func sendMsgToOthers(clt client, conn net.Conn){
 
 // 协程检测心跳包
 func heartBreak(conn net.Conn, timeout int, userName string) {
-	fmt.Println(" heartMsgChan_break------->",  heartMsgChan[userName])
 	for {
 		select {
 		case <- heartMsgChan[userName]:
-			fmt.Println("heart break from client: ", <-heartMsgChan[userName])
-			//err := conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-			//if err != nil {
-			//	fmt.Println("conn setDeadLine is error, error is: ", err)
-			//}
+			fmt.Println("heart break from client: ", <- heartMsgChan[userName])
 			break
 		case <- time.After(time.Second * 5):
 			fmt.Println(conn.RemoteAddr().String(), "heart beat time out!!!")
-			// conn.Close()
+			conn.Close()
 			return
 		}
 	}
