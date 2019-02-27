@@ -182,60 +182,83 @@ func doServerHandle(conn net.Conn) {
 		case ROOM_CHOICE:   //选择聊天室
 			// 将聊天室列表传给客户端提供选择
 			if len(msg_str) == 1 {
+
 				var toClientRoomStr = strconv.Itoa(len(chatRooms)) + "|"
 				for i, chatRoom := range chatRooms{
+					// 获取该聊天室在线用户人数
+					var onlineUsersNum int = 0
+					for _, userName := range chatRooms[i].Users {
+						if userData[userName].IsOnline {
+							onlineUsersNum++
+						}
+					}
 					// 这里int 转 string 务必使用strconv.Itoa()，使用string()会出现乱码
-					roomName := strconv.Itoa(i) + "." + chatRoom.RoomName + "\n"
+					roomName := strconv.Itoa(i) + "." + chatRoom.RoomName + "   当前在线人数/总人数： " + strconv.Itoa(onlineUsersNum) + "/" + strconv.Itoa(len(chatRooms[i].Users)) + "\n"
 					toClientRoomStr = toClientRoomStr + roomName
 				}
 				fmt.Println("ROOM_CHOICE", toClientRoomStr)
 				// 传回给客户端
 				sendMsgToSelf(toClientRoomStr + "\n", conn)
-			} else {
-
-				// 根据玩家选择的聊天室进入对于聊天室展开对话
-				index,_:= strconv.Atoi(msg_str[2])
-				curRoomName := chatRooms[index].RoomName
-
-				// 进入聊天室成功，保存玩家数据,写入房间id
-				userData[msg_str[1]].RoomId = index
-				InsertDataToFile(USER_FILE_NAME, userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, index, false, -1)
-
-				// 写入成功登录之后的连接对象map
-				var onlineClients = make(map[string] client)
-				if chatRooms[index].clients != nil && len(chatRooms[index].clients) > 0{
-					onlineClients = chatRooms[index].clients
-				}
-				clt := client{make(chan string), msg_str[1]}
-				onlineClients[msg_str[1]] = clt
-
-
-				// 将房间数据保存到文件中
-				var isInsert bool = true
-				for _, name := range chatRooms[index].Users {
-					if name == msg_str[1] {
-						isInsert = false
-					}
-				}
-				// 不存在的时候才插入
-				if isInsert {
-					chatRooms[index].Users = append(chatRooms[index].Users, msg_str[1])
-				}
-
-				// 不保存clients字段
-				InsertChatRoomsDataToFile(CHAT_ROOM_FILE_NAME, index, chatRooms[index].RoomName, chatRooms[index].Users)
-
-				chatRooms[index].clients = onlineClients
-
-				// 获取该聊天室的总人数
-				toClientMsg := "欢迎你进入" + curRoomName + "聊天室！此聊天室总人数为" + strconv.Itoa(len(chatRooms[index].Users)) + "人"
-
-				// 传回给客户端
-				sendMsgToSelf(toClientMsg + "\n", conn)
-
-				go sendMsgToOthers(clt, conn)
 			}
 		case ONLINE:  // 玩家登陆上线
+			// 根据玩家选择的聊天室进入对于聊天室展开对话
+			index,_:= strconv.Atoi(msg_str[2])
+			curRoomName := chatRooms[index].RoomName
+
+			// 进入聊天室成功，保存玩家数据,写入房间id,更新玩家在线状态
+			userData[msg_str[1]].RoomId = index
+			InsertDataToFile(USER_FILE_NAME, userData[msg_str[1]].NickName, userData[msg_str[1]].Password, userData[msg_str[1]].Address, index, true, -1)
+
+			// 写入成功登录之后的连接对象map
+			var onlineClients = make(map[string] client)
+			if chatRooms[index].clients != nil && len(chatRooms[index].clients) > 0{
+				onlineClients = chatRooms[index].clients
+			}
+			clt := client{make(chan string), msg_str[1]}
+			onlineClients[msg_str[1]] = clt
+
+			// 将房间数据保存到文件中
+			var isInsert bool = true
+			for _, name := range chatRooms[index].Users {
+				if name == msg_str[1] {
+					isInsert = false
+				}
+			}
+			// 不存在的时候才插入
+			if isInsert {
+				chatRooms[index].Users = append(chatRooms[index].Users, msg_str[1])
+			}
+
+			// 不保存clients字段
+			InsertChatRoomsDataToFile(CHAT_ROOM_FILE_NAME, index, chatRooms[index].RoomName, chatRooms[index].Users)
+
+			chatRooms[index].clients = onlineClients
+
+			var userInfoMsg string
+			userList := chatRooms[index].Users
+
+			fmt.Println("userData-------->", userData)
+
+			for _, userName := range userList {
+				var userStatus string
+				if userData[userName].IsOnline {
+					userStatus = "   在线中"
+				} else {
+					userStatus = "   已离线"
+				}
+				userMsg := userName + "  " + userStatus + "\n"
+				userInfoMsg = userInfoMsg + userMsg
+			}
+
+			// 获取该聊天室的每个玩家的详情
+			toClientMsg := "欢迎你进入【" + curRoomName + "】聊天室！" + "\n" + "此聊天室用户信息列表：\n" + userInfoMsg
+
+			// 传回给客户端
+			sendMsgToSelf(toClientMsg + "\n", conn)
+
+			go sendMsgToOthers(clt, conn)
+
+
 			// 发送给该用户所有的离线消息
 			roomId,_:= strconv.Atoi(msg_str[2])
 			for _, chatLogs := range chatHistory[msg_str[1]][roomId]{
@@ -265,9 +288,6 @@ func doServerHandle(conn net.Conn) {
 					clt.chatChan <- toMsgChanStr   // 将上线信息传入每个非自己玩家的聊天通道中
 				}
 			}
-
-			// 设置玩家状态为在线状态
-			userData[msg_str[1]].IsOnline = true
 		case CHAT:  // 玩家的聊天内容，转发给客户端
 			// ContentRecord map[string]map[int]map[string] []chatLog   // 聊天记录 key1: "who" key2: roomId, key3:"someone", value: chatLog ==> 某人某个房间内收到的某个人或者所有人的聊天记录
 			curRoomId := userData[msg_str[1]].RoomId

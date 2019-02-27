@@ -178,6 +178,7 @@ func userLogin(inputReader *bufio.Reader ) {
 			fmt.Println(responseStr[1])
 			var trimmedRoomChoice string
 			RECHOICE: {
+				fmt.Print("请输入：")
 				roomChoice, _ := inputReader.ReadString('\n')
 				trimmedRoomChoice = strings.Trim(roomChoice, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
 				index, _ := strconv.Atoi(trimmedRoomChoice)
@@ -187,7 +188,7 @@ func userLogin(inputReader *bufio.Reader ) {
 				}
 			}
 			// 通知server玩家进入的聊天室
-			sendChan <- ROOM_CHOICE + "|" + userName + "|" + trimmedRoomChoice
+			sendChan <- ONLINE + "|" + userName + "|" + trimmedRoomChoice
 
 			// 从接收通道中读取服务器数据，得到登陆结果
 			enterRoomMsg := <- recvChan
@@ -195,8 +196,6 @@ func userLogin(inputReader *bufio.Reader ) {
 			fmt.Println(enterRoomMsg)
 			fmt.Println("你可以开始聊天了，按Q退出聊天室")
 
-			// 将玩家登陆信息发送给服务器端
-			sendChan <- ONLINE + "|" + userName + "|"
 			break
 		} else {
 			// 打印错误消息
