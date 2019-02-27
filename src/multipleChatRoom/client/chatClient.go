@@ -33,7 +33,11 @@ const (
 	PRIVATE_CHAT = "201"
 )
 
+// 最大房间数
 var MAX_ROMM_NUM = 5
+
+// 心跳包时间间隔
+var HEART_BEAT_UNIT int = 3
 
 // 接收数据的通道
 var recvChan = make(chan string)
@@ -52,9 +56,6 @@ func Main() {
 		return  // 终止程序
 	}
 	fmt.Println("connect server successed ... ")
-
-	// 启用心跳包
-	// go heartBreakHandle(conn)
 
 	// 调用结束后关闭socket连接
 	defer conn.Close()
@@ -92,35 +93,6 @@ func Main() {
 		switch trimmedInput {
 		// 进入私聊
 		case P_CHAT:
-			//// 发送给server
-			//sendChan <- P_CHAT
-			//
-			//// 收到server的回答
-			//fmt.Println("len of chan:", len(recvChan))
-			//result := <- recvChan
-			//trimResult := strings.Trim(result, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
-			//fmt.Println("trimResult", trimResult)
-			//fmt.Println("请输入你要私聊的用户: ")
-			//name, _ := inputReader.ReadString('\n')
-			//trimmedName := strings.Trim(name, "\r\n")
-			//
-			//sendChan <- P_CHAT + "|" + trimmedName
-			//
-			//// 从接收通道中读取服务器数据，得到登陆结果
-			//response := <- recvChan
-			//trimmedResponse := strings.Trim(response, "\r\n") // Windows 平台下用 "\r\n"，Linux平台下使用 "\n"
-			//// 输入正确且在线存在这个人
-			//if trimmedResponse == "success" {
-			//	fmt.Print("please type with " + trimmedName + ": ")
-			//	p_input, _ := inputReader.ReadString('\n')
-			//	p_trimmedInput := strings.Trim(p_input, "\r\n")
-			//	sendChan <- PRIVATE_CHAT + "|" + userName + "|" + p_trimmedInput  //三段字节流 say | 昵称 | 发送的消息
-			//
-			//} else {
-			//	// 输入有误，重新回到聊天界面
-			//	fmt.Println("请检查是否输入的私聊玩家有误！")
-			//	break
-			//}
 			fmt.Println("请输入你要私聊的用户: ")
 			name, _ := inputReader.ReadString('\n')
 			trimmedName := strings.Trim(name, "\r\n")
@@ -196,6 +168,9 @@ func userLogin(inputReader *bufio.Reader ) {
 			fmt.Println(enterRoomMsg)
 			fmt.Println("你可以开始聊天了，按Q退出聊天室")
 
+			// 登陆成功启用心跳包
+			go heartBreakHandle(userName)
+
 			break
 		} else {
 			// 打印错误消息
@@ -235,15 +210,15 @@ func userRegister(inputReader *bufio.Reader) {
 	}
 }
 
-// 每2s发送一个心跳包
-//func heartBreakHandle(conn net.Conn) {
-//	for {
-//		fmt.Println("heartBreakHandle.....")
-//		 heart_word := "heart break ... "
-//		 sendMsgToServer(conn, HEART + "|" + heart_word)
-//		time.Sleep(2 * time.Second)
-//	}
-//}
+// 每3s发送一个心跳包
+func heartBreakHandle(userName string) {
+	for {
+		// fmt.Println("heartBreakHandle.....")
+		 heartMsg := "heart break ... "
+		sendChan <- HEART + "|" + userName + "|" + heartMsg
+		time.Sleep(3 * time.Second)
+	}
+}
 
 // 从发送数据通道中将数据取出来，通过conn.write写进去传给server
 func doClientSendData(conn net.Conn) {
@@ -264,7 +239,6 @@ func doClientRecvData(conn net.Conn) {
 		if msgLen == 0 || err != nil {  //如果字节流为0或者有错误
 			break
 		}
-
 		recvChan <- string(buf[:msgLen])
 	}
 }

@@ -89,7 +89,8 @@ var userData = make(map[string]*user)
 // 聊天记录数据
 var chatHistory = make(map[string]map[int]map[string] []chatLog)
 
-var heartMsgChan chan string
+// 存放心跳包通道
+var heartMsgChan = make(map[string]chan string)
 
 func Main() {
 	fmt.Println("Starting the chat server ...")
@@ -123,9 +124,6 @@ func startSocket() {
 		}
 
 		go doServerHandle(conn)
-
-		// go heartBreak(conn, 5)
-
 	}
 }
 
@@ -259,6 +257,8 @@ func doServerHandle(conn net.Conn) {
 			go sendMsgToOthers(clt, conn)
 
 
+			go heartBreak(conn, 3,  msg_str[1])
+
 			// 发送给该用户所有的离线消息
 			roomId,_:= strconv.Atoi(msg_str[2])
 			for _, chatLogs := range chatHistory[msg_str[1]][roomId]{
@@ -278,7 +278,6 @@ func doServerHandle(conn net.Conn) {
 				// 将情况的聊天记录保存到文件中
 				InsertChatRecordToFile(CHAT_OFFLINE_MSG, chatHistory)
 			}
-			//sendMsgToSelf("这是模拟上线接收到的离线消息： [111]: 你好" + "\n", conn)
 
 			fmt.Printf("玩家[%s]上线！\n", msg_str[1])
 			curRoomId := userData[msg_str[1]].RoomId
@@ -341,24 +340,6 @@ func doServerHandle(conn net.Conn) {
 			}
 
 		case P_CHAT:   //私聊具体内容 msg_str[1]:私聊的玩家   msg_str[2]：发送信息的玩家 msg_str[3]：聊天的具体内容
-			//var toClientMsg string = P_CHAT + "|"
-			//if len(msg_str) == 1 {   // client端只输入“@”调起所有用户列表
-			//	var allUserName string
-			//	for name, _ := range userData {
-			//		allUserName = allUserName + " " + name
-			//	}
-			//	toClientMsg = toClientMsg + allUserName
-			//
-			//} else {   // client端确定私聊用户 “@” + 用户名
-			//	p_name := msg_str[1]
-			//	if _,ok := userData[p_name] ; ok {
-			//		toClientMsg = toClientMsg + "success"
-			//	}
-			//}
-			//fmt.Println("p_char", toClientMsg)
-			//// 传回给客户端
-			//conn.Write([]byte(toClientMsg + "\n"))
-
 			// 假如输入的私聊玩家是自己，则提醒客户端
 			var toClientMsg string
 			if msg_str[1] == msg_str[2] {
@@ -437,8 +418,9 @@ func doServerHandle(conn net.Conn) {
 			delete(chatRooms[curRoomId].clients, msg_str[1])
 
 		case HEART:  // 心跳包
-			fmt.Println("heartBeat Msg ----->", msg_str[1])
-			heartMsgChan <- msg_str[1]
+			fmt.Println("heartBeat Msg ----->", msg_str[2])
+			heartMsgChan[msg_str[1]] <- msg_str[2]
+			fmt.Println("len of heartChan: ", len(heartMsgChan[msg_str[1]]))
 		}
 	}
 }
@@ -453,8 +435,7 @@ func sendMsgToSelf(toClientMsg string, conn net.Conn) {
 
 // 转发用户的数据给其他用户
 func sendMsgToOthers(clt client, conn net.Conn){
-	// 循环遍历每个玩家，将玩家的储存的通道数据一个个通过conn.write转给客户端
-
+	// 将玩家的储存的通道数据一个个通过conn.write转给客户端
 	for {
 		for msgInfo := range clt.chatChan {
 			fmt.Println("write -----> ", clt.userName, msgInfo )
@@ -468,18 +449,22 @@ func sendMsgToOthers(clt client, conn net.Conn){
 }
 
 // 协程检测心跳包
-func heartBreak(conn net.Conn, timeout int) {
-	//fmt.Println("heartBreak---->", <- heartMsgChan)
-	select {
-	case <- heartMsgChan:
-		fmt.Println("heart break from client: ", <- heartMsgChan)
-		err := conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-		if err != nil {
-			fmt.Println("conn setDeadLine is error")
+func heartBreak(conn net.Conn, timeout int, userName string) {
+	fmt.Println(" heartMsgChan_break------->",  heartMsgChan[userName])
+	for {
+		select {
+		case <- heartMsgChan[userName]:
+			fmt.Println("heart break from client: ", <-heartMsgChan[userName])
+			//err := conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+			//if err != nil {
+			//	fmt.Println("conn setDeadLine is error, error is: ", err)
+			//}
+			break
+		case <- time.After(time.Second * 5):
+			fmt.Println(conn.RemoteAddr().String(), "heart beat time out!!!")
+			// conn.Close()
+			return
 		}
-	case <- time.After(time.Second * 5):
-		fmt.Println(conn.RemoteAddr().String(), "time out")
-		conn.Close()
 	}
 }
 
