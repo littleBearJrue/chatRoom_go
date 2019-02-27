@@ -158,10 +158,7 @@ func doServerHandle(conn net.Conn) {
 				toClientMsg = "用户已存在，请重新注册!"
 				fmt.Println(toClientMsg)
 			} else {
-				// TODO 注册成功将新用户数据写入文件中，此时因为用户尚未进入聊天室，尚未保存roomId
 				InsertDataToFile(USER_FILE_NAME, msg_str[1], msg_str[2], clientAddr, -1, false, -1)
-
-				fmt.Println("userData----->", userData)
 
 				toClientMsg = "registerSuccess"
 			}
@@ -246,7 +243,7 @@ func doServerHandle(conn net.Conn) {
 					// 通过时间戳找到有效的离线消息
 					if chatLog.chatTime >= userData[msg_str[1]].OffLineTime {
 						for _, toClientMsg := range chatLog.content {
-							sendMsgToSelf(toClientMsg + "\n", conn)
+							sendMsgToSelf("[离线消息]" + toClientMsg + "\n", conn)
 						}
 					}
 				}
@@ -355,7 +352,6 @@ func doServerHandle(conn net.Conn) {
 				if userName == msg_str[1] {
 					if userData[userName].IsOnline {
 						// 玩家在线的话交给后面出来，直接将msg塞进用户消息通道chan中
-						fmt.Println("enter is online!!!!")
 					}else {
 						if len(chatHistory[userName]) == 0 {
 							chatHistory[userName] = make(map[int]map[string] []chatLog)
@@ -364,8 +360,6 @@ func doServerHandle(conn net.Conn) {
 							chatHistory[userName][curRoomId] = make(map[string] []chatLog)
 						}
 						chatLogs := chatHistory[userName][curRoomId][msg_str[2]]
-
-						fmt.Println("chatLogs--->", chatLogs)
 
 						// 假如已保存了离线记录，则根据时间戳往里面塞数据
 						if len(chatLogs) > 0 {
@@ -384,7 +378,6 @@ func doServerHandle(conn net.Conn) {
 							}
 						}else{
 							chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toClientMsg}})
-							fmt.Println("after_chatLogs--->", chatLogs)
 							chatHistory[userName][curRoomId][msg_str[2]] = chatLogs
 						}
 					}
