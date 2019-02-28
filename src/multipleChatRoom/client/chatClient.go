@@ -27,10 +27,8 @@ const (
 
 	// 对聊天方式标示
 	P_CHAT = "@"     // 私聊标示
-	HINT_CHAT = "#"  // 常用语
+	HINT_CHAT = "#"  // 常用语（尚未开发完成）
 	Exit = "Q"
-
-	PRIVATE_CHAT = "201"
 )
 
 // 最大房间数
@@ -43,6 +41,7 @@ var HEART_BEAT_UNIT int = 3
 var recvChan = make(chan string)
 // 发送数据的通道
 var sendChan = make(chan string)
+
 // 用户名
 var userName string
 // 用户密码

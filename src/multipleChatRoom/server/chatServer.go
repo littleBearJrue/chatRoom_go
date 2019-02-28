@@ -40,8 +40,6 @@ const (
 	// 对聊天方式标示
 	P_CHAT = "@"     // 私聊标示
 	HINT_CHAT = "#"  // 常用语
-
-	PRIVATE_CHAT = "201"
 )
 
 const (
@@ -394,8 +392,6 @@ func doServerHandle(conn net.Conn) {
 					}
 				}
 			}
-		case PRIVATE_CHAT:
-
 		case OFFLINE:  // 玩家的下线通知
 			fmt.Printf("玩家[%s]下线！'\n'", msg_str[1])
 			curRoomId := userData[msg_str[1]].RoomId

@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3b15bb70-756a-4cc5-9d2a-ca49a782d51b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dataBase/chatContentHistory.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dataBase/chatContentHistory.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dataBase/userData.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dataBase/userData.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/chatClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/client/chatClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/FileUtil.go" beforeDir="false" afterPath="$PROJECT_DIR$/server/FileUtil.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/chatServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/server/chatServer.go" afterDir="false" />
     </list>
@@ -19,8 +17,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/client/chatClient.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-817">
-              <caret line="40" lean-forward="true" selection-start-line="40" selection-end-line="40" />
+            <state relative-caret-position="245">
+              <caret line="224" column="22" lean-forward="true" selection-start-line="224" selection-start-column="22" selection-end-line="224" selection-end-column="22" />
             </state>
           </provider>
         </entry>
@@ -28,8 +26,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server/chatServer.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="292">
-              <caret line="297" column="27" selection-start-line="297" selection-start-column="27" selection-end-line="297" selection-end-column="27" />
+            <state relative-caret-position="595">
+              <caret line="455" column="44" lean-forward="true" selection-start-line="455" selection-start-column="44" selection-end-line="455" selection-end-column="44" />
               <folding>
                 <element signature="e#492#552#0" expanded="true" />
                 <element signature="n#!!block;n#sendMsgToSelf#0" />
@@ -42,8 +40,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/server/FileUtil.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
-              <caret line="127" column="22" lean-forward="true" selection-start-line="127" selection-start-column="22" selection-end-line="127" selection-end-column="22" />
+            <state relative-caret-position="532">
+              <caret line="142" column="42" selection-start-line="142" selection-start-column="42" selection-end-line="142" selection-end-column="42" />
               <folding>
                 <element signature="e#16#56#0" expanded="true" />
               </folding>
@@ -75,7 +73,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>uData</find>
       <find>password</find>
       <find>CHAT_ROOM_FILE_NAME</find>
       <find>onlineClients</find>
@@ -104,6 +101,7 @@
       <find>InsertChatRoomsDataToFile</find>
       <find>toMsgChanStr</find>
       <find>chatHistory</find>
+      <find>PRIVATE_CHAT</find>
       <find>heartBreakHandle</find>
     </findStrings>
   </component>
@@ -121,9 +119,9 @@
         <option value="$PROJECT_DIR$/server.go" />
         <option value="$PROJECT_DIR$/test.go" />
         <option value="$PROJECT_DIR$/main.go" />
+        <option value="$PROJECT_DIR$/server/chatServer.go" />
         <option value="$PROJECT_DIR$/client/chatClient.go" />
         <option value="$PROJECT_DIR$/server/FileUtil.go" />
-        <option value="$PROJECT_DIR$/server/chatServer.go" />
       </list>
     </option>
   </component>
@@ -319,27 +317,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://C:/Go/src/net/dial.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="349" column="17" selection-start-line="349" selection-start-column="17" selection-end-line="349" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client/chatClient.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="245">
+          <caret line="224" column="22" lean-forward="true" selection-start-line="224" selection-start-column="22" selection-end-line="224" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/server/FileUtil.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
-          <caret line="127" column="22" lean-forward="true" selection-start-line="127" selection-start-column="22" selection-end-line="127" selection-end-column="22" />
+        <state relative-caret-position="532">
+          <caret line="142" column="42" selection-start-line="142" selection-start-column="42" selection-end-line="142" selection-end-column="42" />
           <folding>
             <element signature="e#16#56#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/client/chatClient.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-817">
-          <caret line="40" lean-forward="true" selection-start-line="40" selection-end-line="40" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/server/chatServer.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="297" column="27" selection-start-line="297" selection-start-column="27" selection-end-line="297" selection-end-column="27" />
+        <state relative-caret-position="595">
+          <caret line="455" column="44" lean-forward="true" selection-start-line="455" selection-start-column="44" selection-end-line="455" selection-end-column="44" />
           <folding>
             <element signature="e#492#552#0" expanded="true" />
             <element signature="n#!!block;n#sendMsgToSelf#0" />

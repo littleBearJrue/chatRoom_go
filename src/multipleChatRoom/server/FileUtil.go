@@ -36,6 +36,7 @@ func getDirPath() string {
 	return dirPath
 }
 
+// 初始化chatRooms表，初始默认的五个房间
 func initChatRooms() map[int]*chatRoom{
 	chatRoomName := []string{"天蝎座", "天秤座", "金羊座", "摩羯座", "处女座"}
 	rooms := make(map[int] *chatRoom)
@@ -45,6 +46,7 @@ func initChatRooms() map[int]*chatRoom{
 	return rooms
 }
 
+// roomData.txt文件路径中读取房间数据表，反Json获取房间信息保存在chatRoomData中作为返回值
 func ReadChatDataFromFile(fileName string) map[int]*chatRoom {
 	buf := make([]byte, 10 * 1024)
 	chatRoomData := make(map[int]*chatRoom)
@@ -66,6 +68,7 @@ func ReadChatDataFromFile(fileName string) map[int]*chatRoom {
 	return chatRoomData
 }
 
+// 向roomData.txt的文件路径上插入房间信息相关数据，并将数据通过json格式化，最终保存文件
 func InsertChatRoomsDataToFile(fileName string, roomId int, roomName string, users []string) {
 	file,fileErr := os.OpenFile(getDirPath() + fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0101)
 	if fileErr != nil {
@@ -83,6 +86,7 @@ func InsertChatRoomsDataToFile(fileName string, roomId int, roomName string, use
 	}
 }
 
+// 从userData.txt的文件路径中读取用户信息数据表，反Json获取用户信息保存在chatRoomData中作为返回值
 func ReadUserDataFromFile(filename string) map[string]*user{
 	buf := make([]byte, 10 * 1024)
 	userData := make(map[string]*user)
@@ -100,7 +104,7 @@ func ReadUserDataFromFile(filename string) map[string]*user{
 	return userData
 }
 
-
+// 向userData.txt的文件路径上插入用户信息相关数据，并将数据通过json格式化，最终保存文件
 func InsertDataToFile(fileName string, userName string, userPassword string, address string, roomId int, inOnline bool, offTimeStamp int64){
 	file,fileErr := os.OpenFile(getDirPath() + fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
 	if fileErr != nil {
@@ -118,6 +122,7 @@ func InsertDataToFile(fileName string, userName string, userPassword string, add
 	}
 }
 
+// 从chatContentHistory.txt的文件路径中读取用户离线聊天数据，反Json获取用户离线聊天记录保存在chatRoomData中作为返回值
 func ReadChatRecordDataFromFile(filename string) map[string]map[int]map[string] []chatLog{
 	buf := make([]byte, 10 * 1024)
 	chatRecord := make(map[string]map[int]map[string] []chatLog)
@@ -135,6 +140,7 @@ func ReadChatRecordDataFromFile(filename string) map[string]map[int]map[string] 
 	return chatRecord
 }
 
+// 向chatContentHistory.txt的文件路径上插入用户离线聊天信息相关数据，并将数据通过json格式化，最终保存文件
 func InsertChatRecordToFile(fileName string, chatRecord map[string]map[int]map[string] []chatLog){
 	fmt.Println("insert_chatRecord:", chatRecord)
 	file,fileErr := os.OpenFile(getDirPath() + fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 1111)
