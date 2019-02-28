@@ -71,8 +71,8 @@ type user struct {
 }
 
 type chatLog struct {
-	chatTime int64   //聊天时间节点
-	content []string  // 具体聊天内容
+	ChatTime int64   //聊天时间节点
+	Content []string  // 具体聊天内容
 }
 
 type client struct {
@@ -264,8 +264,8 @@ func doServerHandle(conn net.Conn) {
 			for _, chatLogs := range chatHistory[msg_str[1]][roomId]{
 				for _, chatLog := range chatLogs {
 					// 通过时间戳找到有效的离线消息
-					if chatLog.chatTime >= userData[msg_str[1]].OffLineTime {
-						for _, toClientMsg := range chatLog.content {
+					if chatLog.ChatTime >= userData[msg_str[1]].OffLineTime {
+						for _, toClientMsg := range chatLog.Content {
 							sendMsgToSelf("[离线消息]" + toClientMsg + "\n", conn)
 						}
 					}
@@ -296,7 +296,6 @@ func doServerHandle(conn net.Conn) {
 					if userData[userName].IsOnline {
 						// 玩家在线的话交给后面出来，直接将msg塞进用户消息通道chan中
 					}else {
-
 						if len(chatHistory[userName]) == 0 {
 							chatHistory[userName] = make(map[int]map[string] []chatLog)
 						}
@@ -308,19 +307,19 @@ func doServerHandle(conn net.Conn) {
 						if len(chatLogs) > 0 {
 							var isSameTime bool = false
 							for _, chatLog := range chatLogs {
-								if chatLog.chatTime == time.Now().Unix() {
-									chatLog.content = append(chatLog.content, toMsgChanStr)
+								if chatLog.ChatTime == time.Now().Unix() {
+									chatLog.Content = append(chatLog.Content, toMsgChanStr)
 									isSameTime = true
 								} else {
 									isSameTime = false
 								}
 							}
 							if !isSameTime {
-								chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toMsgChanStr}})
+								chatLogs = append(chatLogs, chatLog{ChatTime: time.Now().Unix(), Content: []string{toMsgChanStr}})
 								chatHistory[userName][curRoomId][msg_str[1]] = chatLogs
 							}
 						}else{
-							chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toMsgChanStr}})
+							chatLogs = append(chatLogs, chatLog{ChatTime: time.Now().Unix(), Content: []string{toMsgChanStr}})
 							chatHistory[userName][curRoomId][msg_str[1]] = chatLogs
 						}
 					}
@@ -366,19 +365,19 @@ func doServerHandle(conn net.Conn) {
 						if len(chatLogs) > 0 {
 							var isSameTime bool = false
 							for _, chatLog := range chatLogs {
-								if chatLog.chatTime == time.Now().Unix() {
-									chatLog.content = append(chatLog.content, toClientMsg)
+								if chatLog.ChatTime == time.Now().Unix() {
+									chatLog.Content = append(chatLog.Content, toClientMsg)
 									isSameTime = true
 								} else {
 									isSameTime = false
 								}
 							}
 							if !isSameTime {
-								chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toClientMsg}})
+								chatLogs = append(chatLogs, chatLog{ChatTime: time.Now().Unix(), Content: []string{toClientMsg}})
 								chatHistory[userName][curRoomId][msg_str[2]] = chatLogs
 							}
 						}else{
-							chatLogs = append(chatLogs, chatLog{chatTime: time.Now().Unix(), content: []string{toClientMsg}})
+							chatLogs = append(chatLogs, chatLog{ChatTime: time.Now().Unix(), Content: []string{toClientMsg}})
 							chatHistory[userName][curRoomId][msg_str[2]] = chatLogs
 						}
 					}
