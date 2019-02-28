@@ -6,6 +6,36 @@ import (
 	"os"
 )
 
+// 判断文件夹是否存在
+func isPathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
+// 获取数据储存目录，一旦不存在则创建一个目录
+func getDirPath() string {
+	dirPath := "./dataBase/"
+	iExist, err := isPathExists(dirPath)
+	if err != nil {
+		fmt.Println("get dir error, error is:", err)
+	}
+	if iExist {
+		return dirPath
+	} else {
+		err := os.Mkdir(dirPath, os.ModePerm)
+		if err != nil {
+			fmt.Printf("mkdir failed![%v]\n", err)
+		}
+	}
+	return dirPath
+}
+
 func initChatRooms() map[int]*chatRoom{
 	chatRoomName := []string{"天蝎座", "天秤座", "金羊座", "摩羯座", "处女座"}
 	rooms := make(map[int] *chatRoom)
@@ -18,7 +48,7 @@ func initChatRooms() map[int]*chatRoom{
 func ReadChatDataFromFile(fileName string) map[int]*chatRoom {
 	buf := make([]byte, 10 * 1024)
 	chatRoomData := make(map[int]*chatRoom)
-	file,err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0101)
+	file,err := os.OpenFile(getDirPath() + fileName, os.O_RDWR|os.O_CREATE, 0101)
 	if err != nil {
 		fmt.Println("open file error")
 	}
@@ -37,7 +67,7 @@ func ReadChatDataFromFile(fileName string) map[int]*chatRoom {
 }
 
 func InsertChatRoomsDataToFile(fileName string, roomId int, roomName string, users []string) {
-	file,fileErr := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0101)
+	file,fileErr := os.OpenFile(getDirPath() + fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0101)
 	if fileErr != nil {
 		fmt.Println("file is not exit!")
 	}
@@ -56,7 +86,7 @@ func InsertChatRoomsDataToFile(fileName string, roomId int, roomName string, use
 func ReadUserDataFromFile(filename string) map[string]*user{
 	buf := make([]byte, 10 * 1024)
 	userData := make(map[string]*user)
-	file,err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0766)
+	file,err := os.OpenFile(getDirPath() + filename, os.O_RDWR|os.O_CREATE, 0766)
 	if err != nil {
 		fmt.Println("open file error")
 	}
@@ -72,7 +102,7 @@ func ReadUserDataFromFile(filename string) map[string]*user{
 
 
 func InsertDataToFile(fileName string, userName string, userPassword string, address string, roomId int, inOnline bool, offTimeStamp int64){
-	file,fileErr := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
+	file,fileErr := os.OpenFile(getDirPath() + fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
 	if fileErr != nil {
 		fmt.Println("file is not exit!")
 	}
@@ -91,7 +121,7 @@ func InsertDataToFile(fileName string, userName string, userPassword string, add
 func ReadChatRecordDataFromFile(filename string) map[string]map[int]map[string] []chatLog{
 	buf := make([]byte, 10 * 1024)
 	chatRecord := make(map[string]map[int]map[string] []chatLog)
-	file,err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 1111)
+	file,err := os.OpenFile(getDirPath() + filename, os.O_RDWR|os.O_CREATE, 1111)
 	if err != nil {
 		fmt.Println("open file error")
 	}
@@ -107,7 +137,7 @@ func ReadChatRecordDataFromFile(filename string) map[string]map[int]map[string] 
 
 func InsertChatRecordToFile(fileName string, chatRecord map[string]map[int]map[string] []chatLog){
 	fmt.Println("insert_chatRecord:", chatRecord)
-	file,fileErr := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 1111)
+	file,fileErr := os.OpenFile(getDirPath() + fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 1111)
 	if fileErr != nil {
 		fmt.Println("file is not exit!")
 	}
